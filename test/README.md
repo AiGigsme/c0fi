@@ -9,7 +9,7 @@ browser download), so it's fast and CI-friendly.
     cd test
     npm install          # first time only (pulls jsdom)
     npm test             # auto-tests the highest-versioned c0fi-v*.html in the project root
-    node smoke.mjs ../c0fi-v6.0.html      # or test a specific file
+    node smoke.mjs ../c0fi-v6.2.html      # or test a specific file
     npm run test:self    # also run the archived KNOWN-BROKEN versions, which MUST fail
 
 Exit code is 0 only if the current app passes (and, in self-check mode, the known-broken

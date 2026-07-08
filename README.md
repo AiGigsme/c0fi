@@ -8,8 +8,8 @@ C0fi is in the spirit of n8n, rebuilt around one inversion: the model (via [Olla
 
 Everything runs in one HTML file against your own Ollama. No accounts, no telemetry, no cloud. Flows export as JSON you own; finished flows export as standalone single-file apps.
 
-- **App:** [`c0fi-v6.1.html`](c0fi-v6.1.html)
-- **Full user guide:** [`c0fi-user-guide-v6.1.html`](c0fi-user-guide-v6.1.html) — open it in a browser
+- **App:** [`c0fi-v6.2.html`](c0fi-v6.2.html)
+- **Full user guide:** [`c0fi-user-guide-v6.2.html`](c0fi-user-guide-v6.2.html) — open it in a browser
 
 ---
 
@@ -31,7 +31,7 @@ Then in the app: **Engine settings** → set the endpoint to `http://localhost:1
 
 > **Standalone mode:** with *only* Ollama running (no `c0fi_server.py`), C0fi still works — Web Search and Read Page fall back through DuckDuckGo instant answers and the keyless r.jina.ai reader automatically. The local engine just upgrades quality and adds real result pages.
 
-See the [user guide](c0fi-user-guide-v6.1.html) §2 for the CORS details, the single-instance method, and troubleshooting.
+See the [user guide](c0fi-user-guide-v6.2.html) §2 for the CORS details, the single-instance method, and troubleshooting.
 
 ---
 
@@ -39,8 +39,8 @@ See the [user guide](c0fi-user-guide-v6.1.html) §2 for the CORS details, the si
 
 | File | What it is |
 | --- | --- |
-| `c0fi-v6.1.html` | The whole app — canvas, node palette, Orchestrator, Build App, 21 demos. One file, no build step. |
-| `c0fi-user-guide-v6.1.html` | Complete guide (setup, every node, MCP, the brew model, recipes, troubleshooting). |
+| `c0fi-v6.2.html` | The whole app — canvas, node palette, Orchestrator, Build App, 21 demos. One file, no build step. |
+| `c0fi-user-guide-v6.2.html` | Complete guide (setup, every node, MCP, the brew model, recipes, troubleshooting). |
 | `c0fi_server.py` | Zero-dependency local engine on `:8790` — real DuckDuckGo search + clean page reading, an MCP tool surface (`web_search`, `read_page`, `ask_llm`), and `kb_search`/`kb_list` RAG over `knowledge/`. |
 | `mcp_stdio_bridge.py` | Generic adapter that exposes any stdio MCP server over HTTP+CORS, so browser-based C0fi can reach the wider MCP ecosystem. |
 | `start.sh` | Launcher — starts the engine, opens the newest app version, cleans up its children on `Ctrl+C`. |
@@ -59,7 +59,7 @@ Drag them from the palette, or just describe what you want in the Orchestrator a
 
 ## Build App
 
-The **▶ Build App** button turns the current flow into a standalone `.html` — the same engine with the flow baked in and the builder chrome hidden. A flow with an Interaction node becomes a **chat app**; a batch flow becomes a **form app**. Exported apps still need Ollama reachable (and `c0fi_server.py` if the flow uses web/tool nodes).
+The **▶ Build App** button turns the current flow into a standalone `.html` — the same engine with the flow baked in and the builder chrome hidden. A flow with an Interaction node becomes a **chat app**; a batch flow becomes a **form app**. Exported apps still need Ollama reachable (and `c0fi_server.py` if the flow uses web/tool nodes) — if one opens with no engine in reach, it shows a short "run me on Ollama" hint instead of failing silently.
 
 > An exported app runs its baked-in `Transform`/`Code Branch` JavaScript on the opener's machine and talks to their local engine — **only share apps you built, and only open ones from people you trust.**
 
@@ -81,7 +81,16 @@ npm run test:self  # also runs known-broken archived versions, which MUST fail (
 
 ---
 
-## What's new in v6.1
+## What's new in v6.2
+
+- **Model pool** — Engine settings now holds four model slots (Model, Verifier, Model C, Model D), so one flow can mix different local models.
+- **Per-node model override** — each node has a live dropdown of your available models plus slot tokens (`@1`–`@4`); a judge, a critic, and a drafter can each run on a different model.
+- **Verifier bench + repair loop demo** — three independent judges (reading the Verifier / Model C / Model D slots) score a draft, a Count+Branch join waits for all three, and anything flagged routes to a repair specialist.
+- **One-row status line** — long status messages are clamped to a single row (full text stays in the Brew Log), so the bottom bar no longer overflows the canvas.
+- **Exported-app offline hint** — a standalone app that opens with no engine reachable now shows a short "run me on Ollama" message instead of failing silently.
+
+<details>
+<summary>Earlier — v6.1</summary>
 
 - **⇉ Gather node** — a join/barrier that waits for every incoming wire, then outputs all inputs as one array (no manual counter).
 - **Undo / redo + copy-paste** — ⌘/Ctrl+Z / ⌘⇧Z, and ⌘/Ctrl+C/V to clone a node.
@@ -89,6 +98,8 @@ npm run test:self  # also runs known-broken archived versions, which MUST fail (
 - **Instant Stop** — cancels an in-flight model generation immediately, not just at the next node.
 - **Focus-mode chat** — a waiting Interaction node shows a "✍ your turn" badge and floats a reply bar onto the canvas.
 - Bad-model warning at connect time; misc fixes.
+
+</details>
 
 ---
 
