@@ -2,7 +2,7 @@
 
 **Single-file visual workflow builder where your local LLM builds, wires, and runs the flows — n8n-style canvas, 100% on your machine via Ollama.**
 
-![C0fi — the self-consistency + verify demo on the canvas, with the C0fi Orchestrator panel that builds and edits flows from plain language](docs/screenshot.png)
+![C0fi — the "Verifier bench + repair loop" demo on the canvas, with the C0fi Orchestrator panel that builds and edits flows from plain language](docs/screenshot.png)
 
 C0fi is in the spirit of n8n, rebuilt around one inversion: the model (via [Ollama](https://ollama.com)) sits in the loop four ways — it **decides** (Decision/Critic nodes), **orchestrates** (a chat panel that sees the whole canvas and rewires it), **creates** (describe a flow in plain language and it builds the nodes and wires), and **builds** (edits, extends, and re-runs flows mid-conversation, including ones you drew by hand).
 
@@ -53,9 +53,9 @@ See the [user guide](c0fi-user-guide-v6.1.html) §2 for the CORS details, the si
 
 Drag them from the palette, or just describe what you want in the Orchestrator and let C0fi wire it.
 
-![A complete flow, end to end: the "self-consistency + verify" demo — a 3-sample vote, a deterministic rule-check, and a reject path, ~20 nodes running entirely on local models](docs/full-flow.png)
+![A complete flow, end to end: the "Verifier bench + repair loop" demo — three independent judges, a count-based barrier gate, a unanimous-approval check, and a repair path, ~20 nodes running entirely on local models](docs/full-flow.png)
 
-*Above: one of the 21 built-in demos — a self-consistency vote whose majority answer is then checked against the rules in deterministic JS, so a confidently-wrong model gets rejected instead of trusted.*
+*Above: one of the 21 built-in demos — three independent judges each apply the same four tests to a draft, a Count+Branch join waits until all three are in, and only a unanimous GOOD clears the gate; anything flagged routes to a repair specialist instead of being trusted.*
 
 ## Build App
 
