@@ -2,6 +2,8 @@
 
 **Single-file visual workflow builder where your local LLM builds, wires, and runs the flows — n8n-style canvas, 100% on your machine via Ollama.**
 
+![C0fi — the self-consistency + verify demo on the canvas, with the C0fi Orchestrator panel that builds and edits flows from plain language](docs/screenshot.png)
+
 C0fi is in the spirit of n8n, rebuilt around one inversion: the model (via [Ollama](https://ollama.com)) sits in the loop four ways — it **decides** (Decision/Critic nodes), **orchestrates** (a chat panel that sees the whole canvas and rewires it), **creates** (describe a flow in plain language and it builds the nodes and wires), and **builds** (edits, extends, and re-runs flows mid-conversation, including ones you drew by hand).
 
 Everything runs in one HTML file against your own Ollama. No accounts, no telemetry, no cloud. Flows export as JSON you own; finished flows export as standalone single-file apps.
