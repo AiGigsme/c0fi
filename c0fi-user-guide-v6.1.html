@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C0fi v6.1 — User Guide · c0fi.com</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --roast:#171009; --bean:#241a11; --grounds:#33261a;
+  --crema:#e9c68f; --crema-dim:#b99364; --foam:#f4ead9; --sugar:#8a7a66;
+  --copper:#c46a36; --leaf:#8fb573; --cherry:#d3684f; --wire:#7a5c3d;
+  --mono:'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --disp:'Bricolage Grotesque', system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--roast);color:var(--foam);font-family:var(--mono);font-size:14px;line-height:1.75}
+.page{max-width:880px;margin:0 auto;padding:48px 28px 90px}
+header.hero{border-bottom:1px solid var(--wire);padding-bottom:28px;margin-bottom:40px}
+h1{font-family:var(--disp);font-weight:800;font-size:52px;letter-spacing:-.02em;color:var(--crema);line-height:1.05}
+h1 span{color:var(--foam)}
+h1 .z0{position:relative;display:inline-block;color:var(--crema)}
+h1 .z0::after{content:"";position:absolute;left:10%;right:10%;top:50%;height:.055em;background:currentColor;transform:rotate(-26deg);border-radius:2px}
+h1,h2,h3{font-feature-settings:'zero' 1}
+.sub{color:var(--sugar);margin-top:10px;font-size:13px;text-transform:uppercase;letter-spacing:.14em}
+h2{font-family:var(--disp);font-weight:800;font-size:26px;color:var(--crema);margin:52px 0 14px;letter-spacing:-.01em}
+h3{font-family:var(--disp);font-weight:600;font-size:17px;color:var(--foam);margin:26px 0 8px}
+p{margin:0 0 14px;color:var(--foam)}
+p.dim, li.dim{color:var(--sugar)}
+strong{color:var(--crema)}
+code{background:var(--bean);border:1px solid var(--wire);border-radius:5px;padding:1px 6px;color:var(--crema-dim);font-size:12.5px}
+pre{background:var(--bean);border:1px solid var(--wire);border-radius:10px;padding:14px 16px;overflow-x:auto;margin:0 0 16px;font-size:12.5px;line-height:1.7;color:var(--crema-dim)}
+pre code{background:none;border:none;padding:0}
+ul,ol{margin:0 0 16px 22px}
+li{margin-bottom:6px}
+table{width:100%;border-collapse:collapse;margin:0 0 20px;font-size:12.5px}
+th{font-family:var(--disp);font-weight:600;text-align:left;color:var(--sugar);text-transform:uppercase;letter-spacing:.08em;font-size:10.5px;padding:8px 10px;border-bottom:1px solid var(--wire)}
+td{padding:9px 10px;border-bottom:1px solid #3a2c1d;vertical-align:top}
+td:first-child{color:var(--crema);white-space:nowrap}
+.callout{border:1px solid var(--wire);border-left:3px solid var(--copper);background:var(--bean);border-radius:8px;padding:14px 16px;margin:0 0 18px;font-size:13px}
+.callout.good{border-left-color:var(--leaf)}
+.callout.warn{border-left-color:var(--cherry)}
+.callout b{color:var(--crema);display:block;margin-bottom:4px;font-family:var(--disp)}
+kbd{border:1px solid var(--wire);border-radius:4px;padding:0 5px;font-size:11px;color:var(--sugar);background:var(--bean)}
+.toc{background:var(--bean);border:1px solid var(--wire);border-radius:10px;padding:18px 22px;margin-bottom:8px}
+.toc a{color:var(--crema-dim);text-decoration:none;display:block;padding:2px 0}
+.toc a:hover{color:var(--crema)}
+.chip{display:inline-block;font-size:10px;padding:1px 7px;border-radius:99px;border:1px solid var(--wire);color:var(--sugar);vertical-align:middle;margin-left:6px}
+.chip.new{border-color:var(--leaf);color:var(--leaf)}
+footer{margin-top:70px;border-top:1px solid var(--wire);padding-top:18px;color:var(--sugar);font-size:11.5px}
+@media print{ body{background:#fff;color:#111} :root{--foam:#111;--crema:#7a4a1e;--sugar:#555;--bean:#f4efe8;--wire:#ccc;--crema-dim:#6b4a2a} }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <h1>C<span class="z0">0</span>fi<span>.</span> User Guide</h1>
+  <div class="sub">v6.1 · local orchestration engine · single file · no cloud · c0fi.com</div>
+</header>
+
+<div class="toc">
+  <a href="#what">1. What C0fi is</a>
+  <a href="#setup">2. Setup — one command, or the second-port method</a>
+  <a href="#tour">3. Interface tour</a>
+  <a href="#canvas">4. Canvas controls</a>
+  <a href="#nodes">5. Node reference</a>
+  <a href="#mcp">6. MCP &amp; the Tool Server — everything connects</a>
+  <a href="#orch">7. The C0fi Orchestrator (the build loop)</a>
+  <a href="#brew">8. How a brew executes</a>
+  <a href="#memory">9. The Memory blackboard</a>
+  <a href="#io">10. Saving, loading, and your flow library</a>
+  <a href="#recipes">11. Recipes &amp; the demo library</a>
+  <a href="#trouble">12. Troubleshooting</a>
+</div>
+
+<h2 id="what">1. What C0fi is</h2>
+<p>C0fi is a visual workflow engine in the spirit of n8n, rebuilt around one inversion: <strong>the LLM is not a node inside the workflow — it is the engine that builds and runs the workflow.</strong> Your local model (via Ollama) sits in the loop four ways:</p>
+<ul>
+  <li><strong>Decide</strong> — Decision nodes route branches; Critic nodes judge quality.</li>
+  <li><strong>Orchestrate</strong> — the Orchestrator panel sees the whole canvas and can rewire it.</li>
+  <li><strong>Create</strong> — describe a workflow in plain language and C0fi constructs the nodes and wires.</li>
+  <li><strong>Build</strong> — it edits, extends, and re-runs flows mid-conversation, including flows you drew by hand.</li>
+</ul>
+<p class="dim">Everything runs in one HTML file against your local Ollama. No accounts, no telemetry. One small local helper (<code>c0fi_server.py</code>) upgrades web search and page reading from real result pages; flows export as JSON files you own, or save to a browser-local library.</p>
+<div class="callout good"><b>New in v6.1</b>A <strong>⇉ Gather</strong> join node (§5) that waits for several producers and hands you one array · <strong>undo / redo</strong> and node <strong>copy-paste</strong> on the canvas (§4) · <strong>engine settings now persist</strong> across reloads — no reconnecting every session · <strong>Stop</strong> cancels an in-flight generation instantly instead of at the next node (§8) · a waiting <strong>💬 Interaction</strong> node now shows a "✍ your turn" badge and a reply bar on the canvas itself, so a chat is answerable even in focus mode (§5) · a saved model that Ollama no longer has is flagged at connect time, not as a cryptic error mid-brew (§12).</div>
+
+<h2 id="setup">2. Setup — one command, or the second-port method</h2>
+<p>C0fi needs two things reachable from the browser: your Ollama model server (with CORS allowed) and — for real web search / page reading — the local <code>c0fi_server.py</code> engine. There's now a launcher that starts everything and opens the app for you.</p>
+
+<h3>The fast path — <code>start.sh</code></h3>
+<p>From the C0fi folder:</p>
+<pre><code>./start.sh                    # engine (search + read + MCP tools), opens the app
+./start.sh --with-page-agent  # also starts the page-agent bridge (browser actions)</code></pre>
+<p>It launches <code>c0fi_server.py</code> on port 8790, opens the newest <code>c0fi-v*.html</code> in your browser, and stops every child process it started when you press <kbd>Ctrl+C</kbd>. If Ollama isn't answering it tells you the exact command to start it. That's the whole core stack in one terminal instead of one process per window.</p>
+<div class="callout good"><b>One engine, one file, one port</b>Earlier versions needed two separate Python programs (a big <code>server.py</code> plus an <code>mcp_bridge.py</code> that imported it) running in two terminals on two ports. v4.0 folded the only pieces C0fi actually used — real DuckDuckGo search and clean page reading — into a single zero-dependency <code>c0fi_server.py</code> that serves both the web endpoints and the MCP tools on port 8790. Nothing to install, nothing to import, one process.</div>
+
+<h3>Ollama with browser origins — the second-port method</h3>
+<p>C0fi runs in your browser, so Ollama must accept browser connections (CORS). On a machine that already runs the Ollama desktop app, <strong>don't fight whatever owns port 11434</strong> — the app supervises its server and instantly respawns anything you kill. Sidestep it: run a second Ollama instance on its own port, just for browser tools.</p>
+<ol>
+  <li>Leave the Ollama app (and anything else on 11434) exactly as it is.</li>
+  <li>In a terminal, start a browser-facing instance on <strong>11435</strong>:</li>
+</ol>
+<pre><code>OLLAMA_HOST=127.0.0.1:11435 OLLAMA_ORIGINS="*" ollama serve</code></pre>
+<ol start="3">
+  <li>Open the C0fi HTML file → <strong>Engine settings</strong> → set the endpoint to <code>http://localhost:11435</code> and press <kbd>Enter</kbd> (or click <strong>Test connection</strong>) — the dot goes green and the model list fills in without closing the dialog → pick a model → <strong>Save</strong>.</li>
+  <li>The header dot goes <strong>green</strong> ("engine online"). Load a demo flow and hit <strong>⏻ Brew</strong>.</li>
+</ol>
+<div class="callout good"><b>Set it once <span class="chip new">v6.1</span></b>Your endpoint, model, Verifier, temperature, and loop cap are saved in the browser and restored on every reload — connect once and it sticks. (A saved model your Ollama no longer has is caught at connect time with the list of what <em>is</em> installed, rather than failing with a raw 404 at Brew.)</div>
+<div class="callout good"><b>Why this works every time</b>Both instances share the same model store (<code>~/.ollama</code>), so every model you've ever pulled is available immediately — nothing re-downloads. The env vars are inherited straight from your shell, so no <code>launchctl</code> inheritance games, no kill/respawn race, no permission prompts. One tradeoff: keep that terminal window open — closing it stops the 11435 server. (<code>start.sh</code> checks both 11434 and 11435 and points you here if neither answers.)</div>
+<p>Verify CORS is actually open (optional, from a second terminal tab):</p>
+<pre><code>curl -s -H "Origin: http://example.com" -D - http://localhost:11435/api/tags -o /dev/null | grep -i access-control
+# want: Access-Control-Allow-Origin: *</code></pre>
+
+<div class="callout good"><b>Standalone mode — the file alone is capable</b>With nothing running but Ollama, C0fi can still research and write: Web Search climbs a ladder (local proxy → DuckDuckGo instant answers → a keyless jina.ai reader pass over DuckDuckGo's real results page) and Read Page falls back to the jina reader — each rung tried automatically, each fallback narrated in the Brew Log. <code>c0fi_server.py</code>, the stdio bridge, and Page Agent upgrade quality and add hands; they never gate basic capability. When a flow needs a tool you haven't set up, the Orchestrator completes everything achievable, hands you the artifact, and tells you exactly what to install for the rest.</div>
+<h3>Alternative: single Ollama instance on the default port</h3>
+<p class="dim">Only worth it on a clean machine or if you want zero extra terminals. The env var must reach the <em>app</em>, not just launchd — children inherit environment from their parent process at launch time.</p>
+<pre><code>launchctl setenv OLLAMA_ORIGINS "*"
+killall Ollama        # capital O — quits the app, not just its server child
+open -a Ollama        # fresh app inherits the setenv</code></pre>
+<div class="callout warn"><b>Known trap</b>If you set <code>launchctl setenv</code> while Ollama.app was already running, respawned servers still carry the old environment — the app must be fully quit and relaunched. If <code>killall Ollama</code> and the port keeps getting re-occupied by a new PID, that's the app supervising its child: quit the app itself, or just use the second-port method above and move on. Neither setting survives a reboot; re-run it after rebooting.</div>
+<div class="callout good"><b>Model advice</b>The Orchestrator asks the model to emit strict JSON. Mid-size instruct models (7B–14B+) handle this well; tiny models may chat instead of build. Decision nodes run at temperature 0 regardless of your global setting.</div>
+
+<h2 id="tour">3. Interface tour</h2>
+<table>
+  <tr><th>Region</th><th>What it does</th></tr>
+  <tr><td>Header</td><td>Connection dot, model tag (shows <code>maker ⊢ verifier</code> when a Verifier is set), Engine settings (endpoint, main model, <strong>Verifier model</strong>, temperature, loop safety valve), Export/Import flow.</td></tr>
+  <tr><td>Ingredients (left)</td><td>The node palette. Drag any card onto the canvas.</td></tr>
+  <tr><td>Canvas (center)</td><td>Your flow. Pan by dragging empty space. Toolbar: Brew, Stop, <strong>↶ / ↷ undo &amp; redo</strong> (§4), Clear, a <strong>demo dropdown</strong>, a <strong>My flows</strong> dropdown, and <strong>Save flow</strong> / delete for your local library (§10).</td></tr>
+  <tr><td>C0fi Orchestrator (right)</td><td>Chat with the engine. It builds, edits, and runs the canvas from plain language. Above the input sit <strong>quick-fill example buttons</strong> — a "try:" row (create a research flow, edit / audit the canvas, use your browser agent) and a "langchain patterns:" row (router chain, smart branch, judge &amp; gate, map-reduce, multi-query RAG). Clicking one drops a ready-made request into the input; it does <em>not</em> auto-send — review it, then press Send.</td></tr>
+  <tr><td>Brew Log (right tab)</td><td>Timestamped execution log: prompts, decisions, tool calls, outputs, errors. Think and Critic outputs <strong>stream in live</strong> as the model generates them.</td></tr>
+  <tr><td>Status bar</td><td>Last event, loop-pass counter, node/wire counts.</td></tr>
+</table>
+<p class="dim">The demo dropdown ships <strong>twenty-one flows in four groups</strong> — ① Retrieval &amp; RAG, ② Chains, Routing &amp; Agents, ③ Quality, Judging &amp; Loops, ④ Interactive &amp; Chat. Each group pairs C0fi's originals with LangChain-canonical patterns rebuilt from the same nodes (see §11). The header also carries <strong>Export/Import flow</strong> and <strong>▶ Build App</strong>, which turns the current flow into a standalone app file (§10).</p>
+
+<h2 id="canvas">4. Canvas controls</h2>
+<ul>
+  <li><strong>Add a node</strong> — press on a palette card and release over the canvas.</li>
+  <li><strong>Move</strong> — drag a node by its title bar.</li>
+  <li><strong>Configure</strong> — click the ⚙ gear on any node header, or double-click the title bar, to open the config drawer. Edits apply live.</li>
+  <li><strong>Connect</strong> — click an <strong>out</strong> port (right side), then an <strong>in</strong> port (left side) on another node.</li>
+  <li><strong>Cut a wire</strong> — click the wire.</li>
+  <li><strong>Delete a node</strong> — select it and press <kbd>Del</kbd>, or use the drawer's Delete button. Its wires go with it.</li>
+  <li><strong>Undo / redo</strong> <span class="chip new">v6.1</span> — <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes, <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> (or <kbd>Ctrl</kbd>+<kbd>Y</kbd>) redoes; the toolbar <code>↶ ↷</code> buttons do the same. Every gesture is one step — a whole Orchestrator build, a demo load, or an import undoes as a single action, and a burst of drawer edits on one node coalesces. (Inside a text field, <kbd>⌘</kbd>+<kbd>Z</kbd> stays native text-undo.)</li>
+  <li><strong>Copy / paste a node</strong> <span class="chip new">v6.1</span> — select a node and <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>C</kbd>, then <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>V</kbd> drops a clone (same type, name, and config) at a small offset.</li>
+  <li><strong>Fan-out / fan-in</strong> — one output can feed many inputs; many outputs can feed one input. Siblings sharing one output port run <strong>concurrently</strong> (see §8). A plain node reached by several wires runs <em>once per wire</em>; to instead <strong>merge</strong> parallel producers into one array, use the ⇉ Gather node (§5). Loops back to earlier nodes are allowed (see the safety valve in §8).</li>
+  <li><strong>Pan</strong> — drag empty canvas. <strong>Zoom</strong> — trackpad pinch or mouse-wheel (toward the cursor), or the <code>− 100% +</code> controls bottom-left.</li>
+  <li><strong>Fit / reset</strong> — <code>⤢ fit</code> frames the whole flow in one click (great for a wide flow you can't see at once); <code>⌂</code> resets to 100%. Shortcuts: <kbd>Shift</kbd>+<kbd>1</kbd> fit, <kbd>Home</kbd> reset.</li>
+  <li><strong>Hide panels</strong> — the chevron handles on the canvas's left/right edges collapse the Ingredients and Orchestrator panels so the canvas grows. <kbd>[</kbd> / <kbd>]</kbd> toggle each; <kbd>F</kbd> is focus mode (both at once). If an 💬 Interaction node is waiting while the Orchestrator panel is hidden, a reply bar floats onto the canvas so a live chat is still visible and answerable <span class="chip new">v6.1</span> (§5).</li>
+  <li><strong>Minimap</strong> — the overview bottom-right shows the whole flow and a rectangle for your current view; click or drag it to jump around. Double-click to dismiss it; the <code>▢ map</code> button brings it back.</li>
+</ul>
+
+<h2 id="nodes">5. Node reference</h2>
+
+<h3>⏻ Trigger <span class="chip">start</span></h3>
+<p>Every flow starts here. <code>payload</code> is the initial text handed downstream. Multiple triggers run one after another in a single brew.</p>
+
+<h3>☕ C0fi Think <span class="chip">c0fi</span></h3>
+<p>Sends its prompt to the local model; output flows downstream and <strong>streams into the Brew Log live</strong> as it generates. Templates supported everywhere:</p>
+<pre><code>{{input}}         → whatever arrived on the in port
+{{memory.key}}    → any key on the shared blackboard</code></pre>
+
+<h3>⑂ Decision <span class="chip">c0fi</span></h3>
+<p>Asks the model a question and fires <strong>exactly one</strong> outgoing branch. Verdicts run on the <strong>Verifier model</strong> if one is set in Engine settings (or this node's own model override) — a second model with different weights than the maker, so it doesn't share the maker's blind spots. Double-click the node: the drawer shows exactly which model rules here and why. Write the question as explicit pass/fail tests, not vibes. <code>branches</code> is a comma list (e.g. <code>A,B</code> or <code>YES,NO,ESCALATE</code>) — each label becomes its own out port, correctly positioned even for custom labels. Branch selection is robust: an exact one-word reply wins outright; a verbose reply is resolved by its <em>last</em>-mentioned label, so a small model that reasons before answering still routes to the verdict it actually settled on. Runs at temperature 0.</p>
+<div class="callout"><b>When to reach for Code Branch instead</b>A Decision node spends a model call and can, occasionally, misjudge. If the choice is mechanical — "does this look like a URL", "is this list empty", "is this valid JSON" — use the ⎇ Code Branch below: it's instant, free, and 100% deterministic.</div>
+
+<h3>⎇ Code Branch <span class="chip new">js · new</span></h3>
+<p>A deterministic fork — the same "pick one branch" job as Decision, but decided by JavaScript with <strong>no model call</strong>. Your code is the body of <code>function(input, memory)</code> and must <code>return</code> one of the branch labels. Instant, free, and never wrong.</p>
+<pre><code>// branches: A,B
+return /^https?:\/\//.test(String(input)) ? 'A' : 'B';</code></pre>
+<p class="dim">Use it for loop conditions and any lexical/structural routing. The verified-briefing and bench demos use it as the reliable join/loop primitive that an LLM-routed gate couldn't guarantee.</p>
+
+<h3>▦ For Each <span class="chip new">loop · new</span></h3>
+<p>A native loop over a list — replaces the old hand-rolled "queue in memory + pop node + LLM gate" pattern. Two out ports: <strong>each</strong> fires once per item (wire it to the body you want run per item), and <strong>done</strong> fires once after all items, carrying <code>memory[aggregateKey]</code> as its output. Set <code>items</code> to a template that resolves to a JSON array (or newline-separated text); set <code>aggregateKey</code> to the memory key your per-item body appends to.</p>
+<div class="callout"><b>Sequential by design</b>Items run <strong>one at a time, in order</strong> — not concurrently like a node's sibling wires elsewhere. Deliberate: the body is usually the same local model N times, which would just queue at the model anyway, and serial keeps the per-item log readable. Unlike the queue-and-gate pattern it replaces, For Each does <em>not</em> burn the loop-safety valve per item, so you can iterate a long list without raising Max loop iterations.</div>
+
+<h3>⌕ Web Search <span class="chip">web</span></h3>
+<p>DuckDuckGo search, no API key. Two sources per node: <code>proxy</code> (default) calls the local <code>c0fi_server.py</code> engine's <code>/api/search</code> on port 8790 for real result lists; <code>ddg-api</code> hits DuckDuckGo's Instant Answer API directly from the browser — works with zero local services, but returns only knowledge-panel blurbs, so it's empty for most ordinary queries. Output is a numbered list of titles and URLs, ready for a Think node to pick from.</p>
+
+<h3>▣ Read Page <span class="chip">web</span></h3>
+<p>Fetches a URL and returns clean readable text. <code>proxy</code> mode uses the engine's <code>/api/read</code> extractor; <code>jina</code> mode uses the free r.jina.ai reader (no local server needed). It extracts the first URL found in its input, so an upstream node that answers with a URL wires straight in. Output is capped at 12K characters to protect downstream context.</p>
+
+<h3>⚙ Tool Server <span class="chip">mcp</span></h3>
+<p>The universal socket: calls any tool on any MCP server over HTTP. Three behaviors: leave <code>tool</code> empty and it outputs the server's tool catalog mid-brew; open the node's drawer and press <strong>⌕ discover tools</strong> to browse and cache the catalog (cached catalogs are fed to the Orchestrator, so C0fi can build with tools it just learned about); or set a tool name and JSON <code>args</code> to call it. <code>{{input}}</code> and <code>{{memory.key}}</code> inside args are JSON-escaped automatically, so quotes and newlines in payloads can't break the call. The discover list shows each tool's <strong>parameter schema</strong> (* = required) and clicking a tool scaffolds correct arguments. The <code>cleanup</code> field names a tool to fire with <code>{}</code> if the call fails (e.g. <code>stop_task</code>), so failures never leave orphaned jobs. The built-in engine advertises <code>web_search</code>, <code>read_page</code>, and <code>ask_llm</code> at <code>http://localhost:8790/mcp</code>. See §6.</p>
+
+<h3>⟳ Watch Task <span class="chip">mcp</span></h3>
+<p>Fire-and-monitor for long-running tools — the right shape for browser agents and any job that outlives a polite HTTP request. It starts <code>startTool</code> (default <code>execute_task</code>) without betting everything on that one reply, then polls <code>statusTool</code> on an interval, logging each status change; when the job truly finishes, the real result is captured, logged with a save button, and passed downstream. Every failure exit — deadline (<code>maxMins</code>), task error, or you pressing Stop — automatically fires <code>stopTool</code> first, so nothing is ever left running unattended.</p>
+
+<h3>⇄ HTTP Request <span class="chip">io</span></h3>
+<p>Calls any URL — public APIs or other local services on your machine. <code>{{input}}</code> works in the URL and body. JSON responses are auto-parsed; anything else passes through as text.</p>
+<div class="callout warn"><b>Browser CORS applies</b>C0fi runs in your browser, so remote APIs must allow cross-origin requests. Local services you control (Flask apps, ERPNext, your own tools) can set their own CORS headers and become first-class nodes.</div>
+
+<h3>ƒ Transform <span class="chip">js</span></h3>
+<p>Raw JavaScript over the payload. Your code is the body of <code>function(input, memory)</code> and must <code>return</code> the new payload. Full access to the blackboard object.</p>
+<pre><code>// example: extract JSON field and stamp it
+const d = typeof input === 'string' ? JSON.parse(input) : input;
+memory.lastSeen = new Date().toISOString();
+return d.title + ' — ' + d.url;</code></pre>
+
+<h3>▤ Memory <span class="chip">state</span></h3>
+<p>Reads or writes the shared blackboard. Modes: <code>write</code> (overwrite key with input), <code>append</code> (add input as a new line), <code>read</code> (output becomes the key's value; input is ignored). See §9.</p>
+
+<h3>✎ Critic Loop <span class="chip">c0fi</span></h3>
+<p>A review→revise cycle with a memory for its own law. Verdicts run on the Verifier model; rewrites run on the maker — adversarial by construction, and rewrites <strong>stream live</strong> so you watch each draft form. Each round: (0) a <strong>deterministic screen</strong> checks the draft against the constraint ledger — literal reuse of a banned phrase fails instantly, no verifier call spent; (1) the verifier judges against the <code>goal</code> AND every standing constraint, returning offending phrases verbatim; (2) each verified phrase enters the <strong>ledger</strong> (a memory key, default <code>flags</code>) as <code>phrase :: reason</code>; (3) the maker rewrites under orders to satisfy every constraint and critique point before finishing. Up to <code>maxRounds</code> (capped at 6).</p>
+<div class="callout good"><b>Flags become law, and the law persists</b>The ledger survives across brews and exports with the flow — Thursday's brew starts knowing everything Monday's flagged. Multiple Critic nodes can share one ledger key for house style, or keep separate ones per content type. Read, edit, or seed it by hand through an ordinary Memory node.</div>
+<div class="callout"><b>Template-aware bars</b>The <code>goal</code> interpolates <code>{{memory.key}}</code> like any prompt — so a bar can literally contain ground truth: "every claim must be supported by this page: {{memory.page}}". That is how the Sourced article writer demos do local hallucination-checking.</div>
+
+<h3>💬 Interaction <span class="chip new">live · new</span></h3>
+<p>Turns a brew into a <strong>live session</strong>. When the flow reaches this node it <em>pauses</em>, shows a message in the Brew Log, and waits for you to type a reply — a reply box appears at the bottom of the run pane. Your reply flows out the port; the brew resumes. On the first turn it shows its <code>greeting</code>; on later turns it shows whatever arrives on its in-port (usually the previous answer). Wire it in a loop — <code>Interaction → (do something with the reply) → back to Interaction</code> — and you have a multi-turn chatbot where the whole conversation is one brew. Type the <code>endWord</code> (default <code>bye</code>) or press <strong>Stop</strong> to end.</p>
+<div class="callout good"><b>Conversations don't hit the safety valve</b>Each turn is human-gated, so the loop counter resets when the flow passes through an Interaction node — a chat can run for as many turns as you like. The valve still catches a runaway <em>automated</em> loop (one that never waits for a human) within a single turn. Pair this node with <code>kb_search</code> (§6) to build a "chat with your docs" bot — see the ④ Interactive &amp; Chat demos in §11.</div>
+<div class="callout good"><b>Visible in focus mode <span class="chip new">v6.1</span></b>A waiting Interaction node now pulses a <strong>"✍ your turn"</strong> badge on its card (at any zoom), and when the Orchestrator panel is collapsed a reply bar floats over the bottom of the canvas — type and press <kbd>Enter</kbd> there just like the panel's bar. So a full-canvas or focus-mode session still shows that the chat has started and lets you answer without reopening the panel. The full transcript stays in the Brew Log.</div>
+
+<h3>⇉ Gather <span class="chip new">join · new</span></h3>
+<p>A <strong>join / barrier</strong>: it waits until <em>every</em> wire coming into it has delivered, then fires once with all those inputs collected into a single <strong>array</strong>. Wire several parallel producers into one Gather to merge their results — no manual counter, no shared memory key. Its output is a JSON array, so a downstream Think node reading <code>{{input}}</code> sees all the pieces at once.</p>
+<div class="callout"><b>Gather vs. the default fan-in</b>By default a plain node reached by several wires runs <strong>once per incoming wire</strong> — which is exactly what the "Count + Code Branch" join in the bench and self-consistency demos relies on, and what For&nbsp;Each + a Memory append key does for aggregation. Gather is the no-boilerplate alternative when you just want "combine these N outputs into one." All three coexist; reach for whichever fits.</div>
+<div class="callout warn"><b>Only wire always-active producers in</b>Gather fires when the count of arrived inputs equals the number of wires into it. If one of those wires comes off a Decision/Code-Branch path that <em>doesn't</em> fire, the count never completes and Gather waits out the brew. Feed it producers that always run (parallel Think/search/tool nodes), not the two arms of an either/or branch.</div>
+
+<h3>◎ Output <span class="chip">end</span></h3>
+<p>Terminal collector. Prints the labeled final payload to the Brew Log and shows it on the node card.</p>
+
+<h2 id="mcp">6. MCP &amp; the Tool Server — everything connects</h2>
+<p><strong>c0fi_server.py</strong> is a zero-dependency engine (plain <code>python3</code>, no pip installs) that gives C0fi its web hands and doubles as an MCP server. Run it directly or let <code>start.sh</code> do it:</p>
+<pre><code>python3 c0fi_server.py            # default port 8790
+python3 c0fi_server.py 8795       # any port, if the default is taken</code></pre>
+<p>It serves the web endpoints the Search/Read nodes use (<code>/api/search</code>, <code>/api/read</code>) <em>and</em> an MCP surface at <code>POST /mcp</code> advertising five tools — <code>web_search</code>, <code>read_page</code>, <code>ask_llm</code>, and the knowledge-base pair <code>kb_search</code>, <code>kb_list</code> — that any MCP client can call: C0fi's Tool Server node, Claude Desktop, anything speaking the protocol. Sanity check: open <code>http://127.0.0.1:8790/mcp</code> in a browser and you get a JSON probe listing the tools.</p>
+<div class="callout good"><b>Why real search needs a local helper at all</b>A browser page can't directly fetch <code>duckduckgo.com/html</code> or an arbitrary article and read the response — those sites send no CORS headers for browser JavaScript. <code>c0fi_server.py</code> fetches server-side (no CORS between two programs on your own machine) and re-serves the result to the browser with the right headers. That's the one job the browser genuinely can't do alone — everything else in C0fi runs in the HTML file.</div>
+
+<h3>RAG over your own files — the <code>knowledge/</code> folder <span class="chip new">new</span></h3>
+<p>Drop <code>.txt</code> / <code>.md</code> files into the <code>knowledge/</code> folder next to <code>c0fi_server.py</code>, and <code>kb_search</code> retrieves the passages most relevant to a query — each tagged with its source filename — so a flow can answer grounded in <em>your</em> documents instead of the web. Call it from a Tool Server node: tool <code>kb_search</code>, args <code>{"query":"{{input}}","k":3}</code>. <code>kb_list</code> shows what's available.</p>
+<div class="callout"><b>Collections keep knowledge bases separate</b>The <code>knowledge/</code> folder can hold subfolders, each a named <strong>collection</strong> — its own knowledge base. Pass a <code>folder</code> argument to search one: <code>{"query":"{{input}}","k":3,"folder":"coffee"}</code>. C0fi ships three: <code>coffee/</code> (a sample shop KB), <code>cofi-guide/</code> (C0fi's own documentation), and <code>user-docs/</code> (empty, for <em>your</em> files). This is what lets one engine serve several unrelated bases without their answers bleeding into each other — the <strong>Help desk</strong> demo (§11) even routes each question to the right collection automatically.</div>
+<div class="callout good"><b>Point it at your own files</b>Drop your <code>.txt</code>/<code>.md</code> into <code>knowledge/user-docs/</code>, delete the placeholder <code>README.md</code>, and Brew the <strong>Chat with YOUR docs</strong> demo — it's already wired to that folder, nothing to edit. (Or make a new subfolder and set the tool node's <code>folder</code> arg to match.) Ask before adding files and the bot just tells you where to put them.</div>
+<div class="callout"><b>Lexical now, semantic optional</b>Retrieval is <strong>lexical by default</strong> (keyword/BM25-style scoring with light stemming) — zero setup, works the moment you add files, and suits FAQ-style docs where the answer shares words with the question. For <strong>semantic</strong> matching (better when wording differs), set <code>USE_EMBEDDINGS = True</code> near the top of <code>c0fi_server.py</code> and pull an embedding model first: <code>ollama pull nomic-embed-text</code>. It falls back to lexical if the embed model isn't available.</div>
+<div class="callout warn"><b>Restart the engine after adding files</b>After editing <code>c0fi_server.py</code> or adding documents, kill any old instance before restarting (<code>lsof -ti :8790 | xargs kill</code>, then <code>./start.sh</code>) — a stale copy keeps answering without your new files or tools.</div>
+<div class="callout warn"><b>Port busy? Move, don't fight</b>If the engine reports its port is in use, something else owns it (a stale <code>python3 -m http.server</code> is a classic — it answers with an HTML 404 page instead of the JSON probe). Pass a different port and update the node URLs to match, or just tell the Orchestrator to. To identify a squatter: <code>lsof -i :8790</code>. To kill a python script by name: <code>pkill -f c0fi_server.py</code> (process names are <code>python3</code>, so a bare <code>pkill c0fi_server.py</code> matches nothing).</div>
+<p class="dim">Pattern to copy: any local service you own — a Flask router, ERPNext, a benchmark harness — becomes a C0fi ingredient with a bridge like this one: a tools list, a <code>run_tool</code> dispatcher, and the same JSON-RPC handler. One universal socket instead of a custom node per service.</p>
+
+<h3>The stdio bridge — the rest of the MCP ecosystem</h3>
+<p>Most MCP servers in the wild speak <strong>stdio</strong>, which a browser cannot. <code>mcp_stdio_bridge.py</code> is the generic adapter: it spawns any stdio MCP server as a child and exposes it at <code>POST /mcp</code> with CORS. One shim, whole ecosystem:</p>
+<pre><code>python3 mcp_stdio_bridge.py 8794 -- npx -y @page-agent/mcp
+python3 mcp_stdio_bridge.py 8795 -- npx -y @modelcontextprotocol/server-filesystem /tmp</code></pre>
+<p class="dim">Environment variables pass through to the child. Long tool calls are held open up to 10 minutes. Like every C0fi bridge, a busy port makes it tell you the next port to try rather than fight.</p>
+
+<h3>Hands: Page Agent — driving your real browser</h3>
+<p>C0fi's web nodes are eyes; <a href="https://github.com/alibaba/page-agent">Page Agent</a> (MIT) is hands — a Chrome extension GUI agent that reads the DOM as text and lets an LLM click, type, and navigate real, logged-in pages. It can't be absorbed into the Python engine (it needs the extension and a browser tab), so it stays a separate, optional add-on wrapped as an MCP tool. Its server exposes three tools: <code>execute_task</code> (blocking, natural-language task), <code>get_status</code> (<code>{connected, busy}</code>), <code>stop_task</code>. The chain: C0fi → stdio bridge (8794) → <code>@page-agent/mcp</code> → hub tab (WebSocket, port 38401) → extension → the LLM configured in the extension's panel.</p>
+<p><strong>Setup, in order:</strong></p>
+<ol>
+  <li>Install <strong>Page Agent Ext</strong> from the Chrome Web Store (≥ 1.5.11 for MCP) and enable it.</li>
+  <li>In the extension's config panel, set the LLM: base URL <code>http://localhost:11435/v1</code>, your Ollama model, any non-empty key. Prove it by typing a trivial task in the side panel first — <em>the panel is the brain that MCP tasks will use.</em></li>
+  <li>Launch the bridge — the easy way is <code>./start.sh --with-page-agent</code>, or bare by hand: <code>python3 mcp_stdio_bridge.py 8794 -- npx -y @page-agent/mcp</code></li>
+  <li>In <strong>Chrome</strong>, open <code>http://localhost:38401</code> so the launcher opens the hub tab with its <code>?ws=</code> parameter. Keep exactly one hub tab.</li>
+  <li>In C0fi: Tool Server node → <code>http://localhost:8794/mcp</code> → discover → <code>get_status</code> should report connected. Then run tasks via a ⟳ Watch Task node with <code>cleanup</code>/<code>stopTool</code> = <code>stop_task</code>.</li>
+</ol>
+<div class="callout warn"><b>Do NOT set LLM_* environment variables on the bridge</b>Their MCP server forwards env config with every task, which triggers a configure-before-execute step in the extension that disposes the running agent mid-start — the task instantly returns <em>"Task failed. Task aborted."</em> Launched bare, no config rides along, and tasks run on the proven panel configuration. (The <code>--with-page-agent</code> launcher passes only the LLM base URL/model the page-agent server needs to connect, not the per-task config that triggers the race.)</div>
+<div class="callout"><b>Writing tasks that succeed</b>Numbered steps, explicit STOP lines, and forbidding side-quests keep a local model on the road: <em>"1. Open linkedin.com/feed. 2. Click Start a post. 3. Paste the following text. 4. STOP — do NOT click Post.\n\n{{memory.draft}}"</em> Stage big jobs as multiple small tasks (each gets a fresh agent run) rather than one monolith. Keep the human on the final button for consequential actions.</div>
+<div class="callout good"><b>Consent lives in Chrome</b>Connection approval prompts (and the Auto-approve toggle) appear in the extension, not in the browser running C0fi — keep Chrome visible during action brews. Denial stops the brew cold; that is the kill-switch working.</div>
+
+<h2 id="orch">7. The C0fi Orchestrator — the build loop</h2>
+<p>The right-hand panel is a conversation with the engine itself. On every message, C0fi receives a live snapshot of your canvas (all nodes, configs, wires, memory keys), so it always knows what exists before acting. It replies with structured actions it applies immediately:</p>
+<table>
+  <tr><th>Action</th><th>Effect</th></tr>
+  <tr><td>add_node</td><td>Creates and places a node with full config.</td></tr>
+  <tr><td>connect</td><td>Wires two nodes, including specific decision/branch labels.</td></tr>
+  <tr><td>set_config</td><td>Edits any existing node — including ones you built by hand.</td></tr>
+  <tr><td>delete_node</td><td>Removes a node and its wires.</td></tr>
+  <tr><td>run</td><td>Starts a brew (only when you ask it to run/test).</td></tr>
+</table>
+<p>It knows the full node set, including <strong>Code Branch</strong>, <strong>For Each</strong>, and the <strong>⇉ Gather</strong> join, and is told to prefer a deterministic Code Branch over a model-routed Decision whenever the choice is mechanical, to use For Each instead of hand-rolling a queue, and to reach for Gather when it needs to merge several parallel producers. Things that work well to say:</p>
+<ul>
+  <li>"Build a flow that drafts a LinkedIn post from a topic, gates it on quality, revises until it passes, and archives the winner. Then run it."</li>
+  <li>"Add a decision after the summarizer: if the input mentions pricing, route to a rebuttal writer, otherwise to the archive."</li>
+  <li>"For each URL in the search results, read the page and extract the key facts, then write one combined summary."</li>
+  <li>"What does this canvas do? Where would it break?" <span class="dim">(questions are fine — it answers without building)</span></li>
+</ul>
+<div class="callout"><b>Orange action cards</b>When C0fi builds or edits, an orange card in the chat lists what it did (e.g. <em>Trigger → Summarize → Publish gate</em>). If the layout lands awkwardly, drag nodes around — position is cosmetic, wires are truth.</div>
+<div class="callout good"><b>✨ Refine — feed a critique back in <span class="chip new">new in v5.7</span></b>Next to Send is a <strong>Refine</strong> button. Paste in <em>behavioral feedback</em> — a bug you saw, a wrong result, or a reviewer's critique (even one from another model) — and hit Refine. Instead of building from scratch, the Orchestrator diagnoses which node caused the behavior and patches it with the minimal set of edits, preferring to rewrite existing nodes over adding new ones. It's the same builder LLM, framed for fixing rather than creating. One honest caveat: whether the local model gets the fix <em>right</em> from a critique depends on the model — for a precise, known fix, editing the node yourself is still the surest path; Refine shines for iteration and for feedback you'd rather not hand-translate into node edits.</div>
+<div class="callout good"><b>The architect check — builds get validated <span class="chip new">new in v5.9</span></b>After every build or Refine, a <strong>deterministic validator</strong> checks the result — pure graph facts, no second model: it adds a missing Trigger, appends a missing <code>{{input}}</code> to nodes that forgot it, and (the newest part) catches any node the builder <em>added but left unwired</em>. When it finds dangling nodes it asks the Orchestrator to connect just those; anything it still can't wire is <strong>highlighted red</strong> with a note telling you to drag a wire in — it never silently guesses a connection. This is the "let code check, let models interpret" rule applied to the build step: the judging is deterministic and free, the model is used only to fix what the check identifies.</div>
+<div class="callout good"><b>Quick-fill example buttons</b>Two rows of one-click starters sit above the chat input. The <strong>try:</strong> row covers the everyday moves — create a research flow, edit or audit the current canvas, drive your browser agent. The <strong>langchain patterns:</strong> row asks the Orchestrator to build a canonical pattern from scratch — router chain, smart (Code) branch, judge &amp; gate, map-reduce, multi-query RAG. Clicking a button fills the input but does <em>not</em> send; edit the request if you like, then press Send. Each langchain button mirrors a demo in the dropdown (§11), so if the model's live build comes out imperfect you have the guaranteed-correct version one click away to compare.</div>
+
+<h2 id="brew">8. How a brew executes</h2>
+<ol>
+  <li>Node states reset; every Trigger fires in turn with its payload.</li>
+  <li>Data flows along wires. A running node glows <strong>copper</strong>; finished nodes go <strong>green</strong>; failures go <strong>red</strong> and stop that branch with the error in the Brew Log.</li>
+  <li><strong>Fan-out runs concurrently.</strong> When one output feeds several nodes, those siblings run in parallel — three judge models, say, all think at once instead of in sequence. Shared <code>memory</code> writes are safe (each is synchronous), but if two parallel siblings append to the <em>same</em> key, which lands first isn't guaranteed — use a Code Branch counter (the bench demo) or a <strong>⇉ Gather</strong> node (§5) to join them when order matters.</li>
+  <li>Decision and Code Branch nodes fire only the chosen branch's wires.</li>
+  <li><strong>For Each</strong> iterates its "each" body serially, then fires "done" once with the aggregated result (§5).</li>
+  <li><strong>Loop safety valve</strong> — cycles are allowed (e.g. output wired back to an earlier Think node). Each revisit counts as a loop pass; when passes reach <em>Max loop iterations</em> (Engine settings, default 8), that branch stops cleanly. The status bar shows <code>loop pass n/max</code> live. (For Each does not consume the valve per item; an Interaction node resets it each turn, so a chat can run indefinitely.)</li>
+  <li><strong>Interactive pause</strong> — an 💬 Interaction node stops the brew and waits for you to type; the brew resumes with your reply. A brew can therefore be a live, multi-turn session, not only a batch run (§5).</li>
+  <li><strong>Stop</strong> now <strong>aborts the in-flight model generation immediately</strong> <span class="chip new">v6.1</span> rather than only at the next node boundary — a long Think or Critic rewrite cancels the moment you press it. It also ends any Interaction node waiting for input.</li>
+</ol>
+
+<h2 id="memory">9. The Memory blackboard</h2>
+<p>One shared key-value store lives for the whole session. It's the connective tissue that makes "everything can be connected" literal:</p>
+<ul>
+  <li>Memory nodes <code>write</code> / <code>append</code> / <code>read</code> it.</li>
+  <li>Any prompt, question, URL, or body can pull from it with <code>{{memory.key}}</code>.</li>
+  <li>Transform and Code Branch nodes get the live <code>memory</code> object and can read or mutate it directly.</li>
+  <li>It persists across brews within the session, and is included in flow exports — so a saved flow carries its accumulated state.</li>
+</ul>
+<p class="dim">Pattern: run a research branch that appends findings to <code>memory.notes</code>, then a writer node whose prompt opens with "Context so far: {{memory.notes}}".</p>
+
+<h2 id="io">10. Saving, loading, and your flow library</h2>
+<p>Two independent mechanisms — they don't overlap, and each does something the other can't:</p>
+<table>
+  <tr><th></th><th>Export / Import flow</th><th>Save flow / My flows</th></tr>
+  <tr><td>Stored as</td><td>A <code>.json</code> file you download / upload</td><td>Browser <code>localStorage</code> — this browser, this machine</td></tr>
+  <tr><td>Scope</td><td>The whole canvas, incl. engine settings &amp; memory</td><td>Just the node/wire structure</td></tr>
+  <tr><td>Shareable</td><td>Yes — a portable file to send or version-control</td><td>No — never leaves the browser</td></tr>
+  <tr><td>On load</td><td>Always replaces the canvas</td><td>Asks: <strong>replace</strong>, or <strong>insert alongside</strong> (fresh ids, wires remapped, small offset)</td></tr>
+  <tr><td>Best for</td><td>Backup, sharing, version control of a complete flow</td><td>A personal library of reusable building blocks</td></tr>
+</table>
+<p>The <strong>Insert</strong> option is the one Export/Import can't do at all: drop a saved cluster into whatever's already on the canvas and wire it in, so a saved flow works as a component, not just a snapshot. Rule of thumb — Export/Import is "save this to send or back up"; Save flow / My flows is "reuse this piece inside bigger flows I build later, without leaving the app."</p>
+<p class="dim">Between sessions the browser keeps two things: your saved-flow library and (new in v6.1) your engine settings — the canvas itself is not persisted, so export before you close the tab if you want a portable copy of the current flow.</p>
+
+<h3>▶ Build App — ship a flow as a standalone app <span class="chip new">new in v5.3</span></h3>
+<p>The <strong>Build App</strong> button (header) turns the current flow into a <strong>standalone single-file app</strong>. Name it, and it downloads <code>your-app.html</code> — the same engine with the flow baked in and all the builder chrome (palette, canvas, Orchestrator, toolbar) hidden. Opening that file boots straight into a consumer UI, chosen automatically from the flow's shape:</p>
+<ul>
+  <li>Flow has a 💬 Interaction node → a <strong>chat app</strong>: a clean chat window that greets and waits for input, with engine logs hidden so only the conversation shows. Every RAG-chat flow becomes a shippable chatbot in one click.</li>
+  <li>Batch flow (Trigger → … → Output) → a <strong>form app</strong>: an input box seeded with the trigger's payload, a Run button, and a result panel showing the Output node's result.</li>
+</ul>
+<p>The exported app has its own small header — app name, a live engine-status dot, a ⚙ to point at a different Ollama endpoint, and ↻ Restart. Under the hood it's this same page plus one injected line of config, so an app is even re-openable in the builder.</p>
+<div class="callout warn"><b>An app still needs a running engine</b>A single HTML file can't bundle Ollama. The exported app needs <strong>Ollama reachable</strong> (and <code>c0fi_server.py</code> if the flow uses Search, Read, Tool, or Watch nodes) — the ⚙ lets whoever runs it set the endpoint. For a non-technical recipient, either hand over a folder with the app + <code>c0fi_server.py</code> + a start script, or point the flow's engine endpoint at a hosted LLM API before building so the file runs anywhere.</div>
+<div class="callout good"><b>✨ Improve — the app can rebuild itself <span class="chip new">new in v5.7</span></b>Because an exported app carries the <em>whole</em> engine (just hidden), it can revise its own flow. Every app has an <strong>✨ Improve</strong> button in its header: describe what's wrong or what you'd change, click <strong>Revise &amp; re-download</strong>, and the local model edits the embedded flow and downloads an updated version of the app — open the new file to run it. It's the same feedback loop as the builder's Refine, closed inside a shipped app. So the workflow becomes: build an app, watch it run, notice a flaw (or get a critique from another tool), paste that in, and get back a better app — no builder required. Same caveat applies: the quality of the revision depends on the local model.</div>
+
+<h2 id="recipes">11. Recipes &amp; the demo library</h2>
+<p>The demo dropdown holds twenty-one flows in four groups. Each is a working, correct reference you can load, run, and take apart — and each of the LangChain-pattern additions rebuilds a canonical chain from C0fi's own nodes, so the pattern is legible instead of hidden inside a framework.</p>
+
+<h3>① Retrieval &amp; RAG</h3>
+<ul>
+  <li><strong>Sourced article writer + v2</strong> — Task → memory → query distillation → search → pick source → read page → grounded writer → Grounding editor → output. The writer may only use facts from the page it read; the Grounding editor is a Critic whose bar contains <code>{{memory.page}}</code> as ground truth. v2 adds two bar clauses (a verbatim-quote requirement with an escape hatch, and an explicit net-positive-reason requirement) to show exactly where a new quality rule gets added.</li>
+  <li><strong>Verified multi-source briefing + v2</strong> — gather several source URLs → for each: read + extract facts into a shared digest → cross-checked answer → Cross-source verifier (flags single-sourced claims, names disagreements). The original hand-rolls the loop (queue + pop + Code-Branch gate); <strong>v2 does the same with one For Each node</strong>. Load both and compare.</li>
+  <li><strong>Multi-query retrieval</strong> <span class="chip">LangChain MultiQueryRetriever</span> — a Think node expands one question into three distinct search angles; a For Each searches each and collects every hit; a Merge node dedups and ranks. Pairs the "one question, many phrasings" idea with C0fi's For Each. Add a Read + grounded writer after the merge for full RAG.</li>
+  <li><strong>Query decomposition</strong> <span class="chip">LangChain decomposition</span> — split a hard question into independent sub-questions; For Each researches and answers each on its own (a multi-node body per item); a Synthesize node combines them and names any tension.</li>
+</ul>
+
+<h3>② Chains, Routing &amp; Agents</h3>
+<ul>
+  <li><strong>Content pipeline with a quality gate</strong> — Trigger → Think (draft) → Decision "publish? A/B" → A: Memory append → Output · B: Critic Loop → Output.</li>
+  <li><strong>Router chain</strong> <span class="chip">LangChain MultiPromptChain</span> — a Decision node classifies the input (BILLING / TECH / GENERAL) and only the matching specialist Think node runs. The canonical "pick the right expert" chain. If your categories are keyword-detectable, a Code Branch classifier is instant and free.</li>
+  <li><strong>Map-reduce summarize</strong> <span class="chip">LangChain map_reduce</span> — a Transform splits the document on blank lines; For Each summarizes each chunk (the map); a final Think fuses the chunk summaries into one (the reduce). This is how you summarize text longer than a context window — the model never sees the whole thing at once.</li>
+  <li><strong>Agentic web browser</strong> — Question → search → pick best URL → read → coverage-gate Decision → answer from the page, with a fallback branch when the page is too thin.</li>
+  <li><strong>MCP tool server tour</strong> — the same research shape, but every web action travels through the MCP engine's tools (<code>web_search</code>, <code>read_page</code>). The "everything connects" flow, end to end.</li>
+</ul>
+
+<h3>③ Quality, Judging &amp; Loops</h3>
+<ul>
+  <li><strong>Self-improving loop</strong> — Think (attempt) → Critic → Decision "good enough? YES/NO" → NO wires <em>back</em> into Think with the critique; YES → Output. The safety valve caps runaway loops (§8).</li>
+  <li><strong>Verifier bench + repair loop</strong> — one pitch fans out to three Judge nodes with identical bars but different model overrides, running in parallel; a Code Branch counts to three and opens the gate only once all verdicts are in (a deterministic join that survives concurrency); any RETRY routes to a Repair node that rewrites only the flagged phrases, then re-judges. Loops until unanimous or the safety valve.</li>
+  <li><strong>Self-consistency vote</strong> <span class="chip">self-consistency</span> — a question is sampled three times in parallel; each sample writes a <em>complete</em> one-line ANSWER (the format instruction lives in the Sample prompt, so it survives whatever question you paste in), and the Extract node canonicalizes the <em>whole</em> answer: pure numbers normalize as numbers ($3,412.50 = 3412.5), and multi-part answers (e.g. a logic riddle) are lowercased, split, and sorted so order doesn't matter <em>and</em> a partial answer can't form a false consensus with a full one. A Code Branch waits for all three, then a tally majority-votes. Swap the Trigger for arithmetic, a riddle, or a classification. If you see 3/3 every time the task was too easy — raise Temperature to watch a slip get out-voted.</li>
+  <li><strong>Self-consistency + verify</strong> <span class="chip new">new in v5.8</span> — the crucial follow-up. Self-consistency is a variance reducer, not a truth oracle: if the model is <em>systematically</em> wrong, the majority just launders the error into false confidence (a real run of a zoo-logic puzzle voted 2-of-3 for an answer that violated a rule). So after the tally, a <strong>deterministic rule-checker</strong> parses the winning answer and tests each puzzle rule in plain JS, and a Code Branch accepts <em>only</em> a valid answer — routing a wrong majority to a Reject node. It checks the answer against the <strong>rules, not the model</strong>. For a verifiable task, this is the pattern to steal: don't vote, verify. Rewrite the checker node with the checks your own problem needs.</li>
+  <li><strong>LLM-as-judge eval</strong> <span class="chip">LangChain evaluator</span> — one model does a task; a <em>separate</em> model scores the result against a rubric and emits a SCORE line; a Code Branch gates on the number (≥4 accepts). Set a Verifier model so the judge has different weights than the maker. Wire the FAIL branch back for a score-gated retry loop.</li>
+</ul>
+
+<h3>④ Interactive &amp; Chat <span class="chip new">v5.0–5.2</span></h3>
+<ul>
+  <li><strong>Interactive chatbot</strong> — Trigger (greeting) → 💬 Interaction → Think → <em>back to Interaction</em>. Brew it and the flow talks to you, waits for each reply, and answers — a whole multi-turn conversation as one live brew. Type <code>bye</code> or press Stop to end.</li>
+  <li><strong>Chat with your docs</strong> — the flagship RAG chatbot: 💬 Interaction → remember the question → <code>kb_search</code> over the <code>coffee</code> collection → an LLM answers grounded <em>only</em> in the retrieved passages → back to Interaction. Ask "how late are you open Saturday?", then "can I return opened beans?", then "how much is membership?" — each answered from the sample files.</li>
+  <li><strong>Chat with YOUR docs</strong> — the same shape, pre-wired to <code>knowledge/user-docs/</code>. Drop your own <code>.txt</code>/<code>.md</code> in, delete the placeholder README, restart the engine, and Brew — no node edits needed (§6).</li>
+  <li><strong>Chat with the C0fi guide</strong> — dogfooding: <code>kb_search</code> over the <code>cofi-guide</code> collection (C0fi's own documentation). Ask "how do I connect Ollama?", "what does the Code Branch node do?", "how do I make a chatbot?" and get answers grounded in the guide.</li>
+  <li><strong>Help desk</strong> — one bot, two knowledge bases, auto-routed: 💬 Interaction → a Decision classifies SHOP vs GUIDE → <code>kb_search</code> hits the matching collection → an LLM answers → back to you. Router chain + RAG + Interaction node together. Ask "how late are you open?" and it searches the shop KB; ask "what does For Each do?" and it searches the guide KB — same conversation.</li>
+</ul>
+
+<h3>Lessons the demos encode (learned the hard way)</h3>
+<p class="dim">Testable bars beat vibes. Close your lists: "exactly these six words and no others" beats "no hype words". Keep answer keys out of prompts. <strong>Let code count and match; let models interpret</strong> — a Code Branch counter never miscounts a join, an LLM gate can. And the discipline lives in the harness, not the weights: the same model that passes a judged loop reaches for "revolutionary" the moment it writes unjudged.</p>
+<h3>Local-stack bridge</h3>
+<p class="dim">Point HTTP nodes at services already on your machine — a Flask router, ERPNext endpoints, another Ollama model on a second port — and let Decision or Code Branch nodes route between them. C0fi becomes the conductor of your whole local rig.</p>
+
+<h2 id="trouble">12. Troubleshooting</h2>
+<table>
+  <tr><th>Symptom</th><th>Fix</th></tr>
+  <tr><td>Red dot / "engine offline"</td><td>Ollama isn't reachable or is rejecting browser origins. Fastest fix: <code>OLLAMA_HOST=127.0.0.1:11435 OLLAMA_ORIGINS="*" ollama serve</code> and point Engine settings at <code>http://localhost:11435</code>. <code>start.sh</code> flags this at launch.</td></tr>
+  <tr><td>"bind: address already in use" on 11434</td><td>Something already owns the default port (usually the Ollama desktop app). Don't kill it — it respawns. Use the second-port method in §2.</td></tr>
+  <tr><td>Web Search returns almost nothing</td><td>You're on <code>ddg-api</code> (instant answers only). Start <code>c0fi_server.py</code> (or <code>./start.sh</code>) and set the node's source to <code>proxy</code> for real result lists.</td></tr>
+  <tr><td>Header says "model … not installed"</td><td>Your saved/imported model isn't on this Ollama (renamed, removed, or a different machine). Open Engine settings — the Model list shows what <em>is</em> installed; pick one and Save. Flagged at connect time so it can't surface as a raw 404 mid-brew.</td></tr>
+  <tr><td>A ⇉ Gather node never fires</td><td>It waits for <em>every</em> incoming wire. If one comes off a Decision/Code-Branch arm that didn't fire this run, the count can't complete. Wire only always-active producers into a Gather (§5).</td></tr>
+  <tr><td>Orchestrator chats but doesn't build</td><td>The model returned prose instead of JSON. Try a stronger/instruct model, or rephrase as a direct command ("Build a flow that…").</td></tr>
+  <tr><td>Decision picks the wrong branch</td><td>Make labels distinctive (<code>PUBLISH,REVISE</code> beats <code>A,B</code> for small models) and state them in the question. If the test is mechanical, switch to a Code Branch — it can't misjudge.</td></tr>
+  <tr><td>HTTP node fails on a public API</td><td>That API doesn't send CORS headers. Use an API that does, or route through a local proxy you control.</td></tr>
+  <tr><td>"Loop safety valve hit"</td><td>Working as intended — a cycle ran out of passes. Raise <em>Max loop iterations</em> if the loop is deliberate, or convert an iteration to a For Each node (it doesn't consume the valve).</td></tr>
+  <tr><td>Nothing happens on Brew</td><td>Check for a Trigger node and that it's wired forward. The Brew Log names the exact failure otherwise.</td></tr>
+  <tr><td>Tool Server: "NetworkError when attempting to fetch resource"</td><td>Nothing CORS-speaking is answering at that URL. Probe it in a browser — JSON probe = engine/bridge is up, HTML 404 = a different server is squatting. Start on a free port (<code>python3 c0fi_server.py 8795</code>) and update the node URL — or tell the Orchestrator to.</td></tr>
+  <tr><td>c0fi_server: "port … is already in use"</td><td>By design it refuses to fight and tells you the next port to try. A stale <code>python3 -m http.server</code> or old session usually owns it; <code>lsof -i :&lt;port&gt;</code> names the PID.</td></tr>
+  <tr><td>Page Agent: instant "Task failed. Task aborted"</td><td>LLM_* env vars were set on the bridge — the forwarded config races the agent's disposal. Relaunch bare (or via <code>--with-page-agent</code>); the extension's panel config governs.</td></tr>
+  <tr><td>Page Agent: "Hub is not connected"</td><td>Extension not installed/enabled, or no hub tab. Open <code>localhost:38401</code> in Chrome. A hub page opened without <code>?ws=PORT</code> is dormant and always shows No connection.</td></tr>
+  <tr><td>Saved flow didn't come back after reboot</td><td>The flow library is per-browser <code>localStorage</code> — it survives closing the tab but is tied to that browser profile. For a portable copy, use Export flow (§10).</td></tr>
+  <tr><td>Flow gone after switching browsers</td><td>Expected — My flows is local to one browser. Export to JSON to move a flow between machines or browsers.</td></tr>
+</table>
+
+<footer>C0fi v6.1 · single-file local orchestration engine · runs entirely against your own Ollama · your flows, your files, your machine. · c0fi.com</footer>
+
+</div>
+</body>
+</html>

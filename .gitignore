@@ -1,0 +1,23 @@
+# dependencies (regenerate with: cd test && npm install)
+node_modules/
+test/node_modules/
+
+# npm debug output
+npm-debug.log*
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# C0fi runtime artifacts (exported apps / flows usually land in ~/Downloads,
+# but ignore them here in case anyone builds inside the repo)
+*.log
+
+# superseded versions (kept locally, not published)
+archive/
+c0fi-v6.0.html
+c0fi-user-guide-v6.0.html

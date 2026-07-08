@@ -1,0 +1,19 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "C0fi headless smoke test (jsdom)",
+  "main": "index.js",
+  "scripts": {
+    "test": "node smoke.mjs && node runtime.mjs",
+    "test:smoke": "node smoke.mjs",
+    "test:runtime": "node runtime.mjs",
+    "test:self": "node smoke.mjs --self-check"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "jsdom": "^29.1.1"
+  }
+}
