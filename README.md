@@ -53,6 +53,10 @@ See the [user guide](c0fi-user-guide-v6.1.html) §2 for the CORS details, the si
 
 Drag them from the palette, or just describe what you want in the Orchestrator and let C0fi wire it.
 
+![A complete flow, end to end: the "self-consistency + verify" demo — a 3-sample vote, a deterministic rule-check, and a reject path, ~20 nodes running entirely on local models](docs/full-flow.png)
+
+*Above: one of the 21 built-in demos — a self-consistency vote whose majority answer is then checked against the rules in deterministic JS, so a confidently-wrong model gets rejected instead of trusted.*
+
 ## Build App
 
 The **▶ Build App** button turns the current flow into a standalone `.html` — the same engine with the flow baked in and the builder chrome hidden. A flow with an Interaction node becomes a **chat app**; a batch flow becomes a **form app**. Exported apps still need Ollama reachable (and `c0fi_server.py` if the flow uses web/tool nodes).
