@@ -17,7 +17,6 @@ Thumbs.db
 # but ignore them here in case anyone builds inside the repo)
 *.log
 
-# superseded versions (kept locally, not published)
+# superseded versions live in archive/ (kept locally, not published) — only the
+# current c0fi-v*.html and its guide stay in the repo root
 archive/
-c0fi-v6.0.html
-c0fi-user-guide-v6.0.html

@@ -4,7 +4,7 @@
 
 ![C0fi — the "Verifier bench + repair loop" demo on the canvas, with the C0fi Orchestrator panel that builds and edits flows from plain language](docs/screenshot.png)
 
-C0fi is in the spirit of n8n, rebuilt around one inversion: the model (via [Ollama](https://ollama.com)) sits in the loop four ways — it **decides** (Decision/Critic nodes), **orchestrates** (a chat panel that sees the whole canvas and rewires it), **creates** (describe a flow in plain language and it builds the nodes and wires), and **builds** (edits, extends, and re-runs flows mid-conversation, including ones you drew by hand).
+C0fi is in the spirit of n8n, rebuilt around one inversion — the whole canvas is a single loop the model lives inside: **decide → orchestrate → create → build → run → learn**. Via [Ollama](https://ollama.com), the model **decides** (Decision/Critic nodes), **orchestrates** (a chat panel that sees the whole canvas and rewires it), **creates** (describe a flow in plain language and it builds the nodes and wires), and **builds** (edits, extends, and re-runs flows mid-conversation, including ones you drew by hand) — then you **run** the flow and **learn** from what comes back in the Brew Log, feeding the next pass.
 
 Everything runs in one HTML file against your own Ollama. No accounts, no telemetry, no cloud. Flows export as JSON you own; finished flows export as standalone single-file apps.
 
