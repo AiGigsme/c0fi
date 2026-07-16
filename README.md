@@ -8,8 +8,8 @@ C0fi is in the spirit of n8n, rebuilt around one inversion — the whole canvas 
 
 Everything runs in one HTML file against your own Ollama. No accounts, no telemetry, no cloud. Flows export as JSON you own; finished flows export as standalone single-file apps; and flows can now **run themselves on a schedule** (Auto Brews).
 
-- **App:** [`c0fi-v6.7.html`](c0fi-v6.7.html)
-- **Full user guide:** [`c0fi-user-guide-v6.7.html`](c0fi-user-guide-v6.7.html) — open it in a browser
+- **App:** [`c0fi-v6.8.html`](c0fi-v6.8.html)
+- **Full user guide:** [`c0fi-user-guide-v6.8.html`](c0fi-user-guide-v6.8.html) — open it in a browser
 
 ---
 
@@ -31,7 +31,7 @@ Then in the app: **Engine settings** → set the endpoint to `http://localhost:1
 
 > **Standalone mode:** with *only* Ollama running (no `c0fi_server.py`), C0fi still works — Web Search and Read Page fall back through DuckDuckGo instant answers and the keyless r.jina.ai reader automatically. The local engine just upgrades quality and adds real result pages.
 
-See the [user guide](c0fi-user-guide-v6.7.html) §2 for the CORS details, the single-instance method, and troubleshooting.
+See the [user guide](c0fi-user-guide-v6.8.html) §2 for the CORS details, the single-instance method, and troubleshooting.
 
 ---
 
@@ -39,8 +39,8 @@ See the [user guide](c0fi-user-guide-v6.7.html) §2 for the CORS details, the si
 
 | File | What it is |
 | --- | --- |
-| `c0fi-v6.7.html` | The whole app — canvas, node palette, Orchestrator, Build App, Auto Brews, 21 demos. One file, no build step. |
-| `c0fi-user-guide-v6.7.html` | Complete guide (setup, every node, MCP, the brew model, Auto Brews, recipes, troubleshooting). |
+| `c0fi-v6.8.html` | The whole app — canvas, node palette, Orchestrator, Build App, Auto Brews, 21 demos. One file, no build step. |
+| `c0fi-user-guide-v6.8.html` | Complete guide (setup, every node, MCP, the brew model, Auto Brews, recipes, troubleshooting). |
 | `c0fi_server.py` | Zero-dependency local engine on `:8790` — real DuckDuckGo search + clean page reading, an MCP tool surface (`web_search`, `read_page`, `ask_llm`), and `kb_search`/`kb_list` RAG over `knowledge/`. |
 | `mcp_stdio_bridge.py` | Generic adapter that exposes any stdio MCP server over HTTP+CORS, so browser-based C0fi can reach the wider MCP ecosystem. |
 | `start.sh` | Launcher — starts the engine, opens the newest app version, cleans up its children on `Ctrl+C`. |
@@ -60,7 +60,7 @@ Drag them from the palette, or just describe what you want in the Orchestrator a
 
 ## Auto Brews — flows that run themselves
 
-The **⏰ Auto Brews** button (next to *Clear canvas*) schedules whole flows to brew automatically — **every N minutes** or **daily at a time**. Build a flow, confirm it with **⏻ Brew**, then deploy it to the Auto Brews list; deploy as many as you want, each **pausable, deletable, and running independently**. Every run can **auto-save its result to a `.txt`** file, and there's a **⤓ Save .txt** for the last result on demand.
+The **⏰ Auto Brews** button (next to *Clear canvas*) schedules whole flows to brew automatically — **every N minutes**, **daily at a time**, or **weekly on the days you pick** (e.g. every Monday at 1 am, or Mon/Wed/Fri at 09:00). Build a flow, confirm it with **⏻ Brew**, then deploy it to the Auto Brews list; deploy as many as you want, each **pausable, deletable, and running independently**. Every run can **auto-save its result to a `.txt`** file, and there's a **⤓ Save .txt** for the last result on demand.
 
 A background run **snapshots your canvas, runs the scheduled flow, and restores your canvas** — it never loses the work you have open and won't hijack the canvas mid-edit. A single engine lock keeps brews from colliding: a busy engine **holds and retries** instead. Deleting a brew that's running **stops it** for you.
 
@@ -90,7 +90,14 @@ npm run test:self  # also runs known-broken archived versions, which MUST fail (
 
 ---
 
-## What's new in v6.7 — Auto Brews
+## What's new in v6.8 — weekly Auto Brews
+
+- **📅 Weekly schedule** — a third Auto Brew mode alongside *every N minutes* and *daily at time*. Pick any combination of **Mon–Sun** plus a 24-hour time: "every Monday at 1 am," "Mon/Wed/Fri at 09:00," "weekends at noon." Tick all seven and it reads *every day*.
+- The schedule shows in the list as e.g. `Mon, Wed, Fri at 09:00`; the next-run estimate accounts for the selected weekdays.
+- Deploying weekly requires **at least one day** checked.
+
+<details>
+<summary>Earlier — v6.7 (Auto Brews)</summary>
 
 - **⏰ Auto Brews** — deploy whole flows to a scheduled list that brews automatically (**every N minutes** or **daily at HH:MM**) while the tab is open. Many brews run independently; each persists across reloads.
 - **Deploy / Pause / Run now / Update flow / Delete** per brew — plus a live active/total count on the button.
@@ -98,6 +105,8 @@ npm run test:self  # also runs known-broken archived versions, which MUST fail (
 - **Swap-run-restore** — a background brew snapshots your canvas, runs the scheduled flow, and restores your open work untouched; it won't hijack the canvas while you're editing.
 - **One engine lock, hold-and-retry** — brews never collide; a busy engine makes a manual run retry in 2 min and a scheduled run retry every 15 s.
 - **Stop-on-delete** — deleting an Auto Brew that's mid-run stops it for you.
+
+</details>
 
 <details>
 <summary>Earlier — v6.2</summary>

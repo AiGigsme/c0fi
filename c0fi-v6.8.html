@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>C0fi v6.7 — Local Orchestration Engine · c0fi.com</title>
+<title>C0fi v6.8 — Local Orchestration Engine · c0fi.com</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -214,6 +214,7 @@ button.mini{font-size:10px;padding:2px 8px}
 #autoDeploy{border:1px solid var(--wire);border-radius:8px;padding:12px;margin-bottom:14px;background:var(--bean)}
 #autoDeploy .row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
 #autoDeploy .fld{flex:1;min-width:120px}
+.ab-day{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--sugar);border:1px solid var(--wire);border-radius:6px;padding:3px 7px;cursor:pointer;user-select:none}
 #status{grid-area:status;display:flex;align-items:center;gap:16px;padding:0 14px;border-top:1px solid var(--wire);background:var(--bean);font-size:11px;color:var(--sugar);overflow:hidden}
 /* keep the status line to one row — a long message stays full in the Brew Log */
 #statMsg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
@@ -245,7 +246,7 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
 <div id="app">
   <header>
     <h1>C<span class="z0">0</span>fi<span>.</span></h1>
-    <span class="tag">local orchestration engine · v6.7</span>
+    <span class="tag">local orchestration engine · v6.8</span>
     <span class="tag">c0fi.com</span>
     <span class="tag" id="modelTag">no model</span>
     <div class="spacer"></div>
@@ -455,10 +456,21 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
     <div class="row">
       <div class="fld"><label>Name</label><input id="abName" placeholder="Morning digest"></div>
       <div class="fld"><label>Schedule</label>
-        <select id="abMode"><option value="every">every N minutes</option><option value="daily">daily at time</option></select></div>
+        <select id="abMode"><option value="every">every N minutes</option><option value="daily">daily at time</option><option value="weekly">weekly on days</option></select></div>
       <div class="fld" id="abEveryWrap"><label>Minutes</label><input id="abEvery" value="30"></div>
       <div class="fld" id="abAtWrap" style="display:none"><label>Time (24h HH:MM)</label><input id="abAt" value="08:00"></div>
       <button class="primary" id="abDeploy">＋ Deploy</button>
+    </div>
+    <div class="fld" id="abDaysWrap" style="display:none;margin-top:10px"><label>Days of week</label>
+      <div id="abDays" style="display:flex;gap:6px;flex-wrap:wrap">
+        <label class="ab-day"><input type="checkbox" value="1" checked style="width:auto"> Mon</label>
+        <label class="ab-day"><input type="checkbox" value="2" style="width:auto"> Tue</label>
+        <label class="ab-day"><input type="checkbox" value="3" style="width:auto"> Wed</label>
+        <label class="ab-day"><input type="checkbox" value="4" style="width:auto"> Thu</label>
+        <label class="ab-day"><input type="checkbox" value="5" style="width:auto"> Fri</label>
+        <label class="ab-day"><input type="checkbox" value="6" style="width:auto"> Sat</label>
+        <label class="ab-day"><input type="checkbox" value="0" style="width:auto"> Sun</label>
+      </div>
     </div>
     <label style="display:flex;align-items:center;gap:8px;width:auto;margin-top:10px;cursor:pointer">
       <input type="checkbox" id="abAutoSave" style="width:auto"> ⤓ Auto-save each run's result to a .txt file (downloads folder)</label>
@@ -469,7 +481,7 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
 </dialog>
 <script>
 /* =========================================================
-   C0fi v6.7 — everything on the canvas is inside the loop:
+   C0fi v6.8 — everything on the canvas is inside the loop:
    decide → orchestrate → create → build → run → learn.
    ========================================================= */
 const $ = s => document.querySelector(s);
@@ -1095,11 +1107,26 @@ function patchAutoBrew(id, fields){
   if(!e) return false;
   Object.assign(e, fields); writeAutoBrews(list); return true;
 }
-function abDesc(e){ return e.mode==='daily' ? 'daily at '+(e.atTime||'08:00') : 'every '+Math.max(1,+e.everyMins||30)+' min'; }
+const AB_DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+// normalize a weekly entry's day list to a sorted, deduped array of 0..6 ints; empty → every day.
+function abDays(e){ const d=[...new Set((e.days||[]).map(x=>+x).filter(x=>x>=0&&x<=6))].sort((a,b)=>a-b);
+  return d.length?d:[0,1,2,3,4,5,6]; }
+function abDaysLabel(e){ const d=abDays(e); return d.length===7 ? 'every day' : d.map(i=>AB_DAY_NAMES[i]).join(', '); }
+function abDesc(e){
+  if(e.mode==='weekly') return abDaysLabel(e)+' at '+(e.atTime||'08:00');
+  if(e.mode==='daily')  return 'daily at '+(e.atTime||'08:00');
+  return 'every '+Math.max(1,+e.everyMins||30)+' min';
+}
 function abSameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
 function abNextAt(e, now){
   if(e.mode==='daily'){ const d=new Date(now); const [hh,mm]=String(e.atTime||'08:00').split(':').map(x=>+x);
     d.setHours(hh||0,mm||0,0,0); let t=d.getTime(); if(t<=now) t+=86400000; return t; }
+  if(e.mode==='weekly'){ const days=abDays(e); const [hh,mm]=String(e.atTime||'08:00').split(':').map(x=>+x);
+    // scan today..+7 days for the first selected weekday whose time is still ahead; +7 guarantees a hit.
+    for(let i=0;i<=7;i++){ const d=new Date(now); d.setDate(d.getDate()+i); d.setHours(hh||0,mm||0,0,0);
+      if(days.includes(d.getDay()) && d.getTime()>now) return d.getTime(); }
+    return now+7*86400000;   // unreachable in practice
+  }
   const mins=Math.max(1,+e.everyMins||30); return (e.lastRun||now)+mins*60000;
 }
 function abWhen(e){ const now=Date.now(), dm=Math.max(0,Math.round((abNextAt(e,now)-now)/60000));
@@ -1181,11 +1208,12 @@ async function autoTick(){
   for(const e of list){
     if(e.paused) continue;
     let due=false;
-    if(e.mode==='daily'){
+    if(e.mode==='daily' || e.mode==='weekly'){
       const [hh,mm]=String(e.atTime||'08:00').split(':').map(x=>+x);
       const dueMin=(hh||0)*60+(mm||0), curMin=nowD.getHours()*60+nowD.getMinutes();
       const ranToday = e.lastRun && abSameDay(new Date(e.lastRun), nowD);
-      if(!ranToday && curMin>=dueMin && curMin<dueMin+2) due=true;
+      const dayOk = e.mode==='weekly' ? abDays(e).includes(nowD.getDay()) : true;
+      if(dayOk && !ranToday && curMin>=dueMin && curMin<dueMin+2) due=true;
     }else{
       if(now-(e.lastRun||0) >= Math.max(1,+e.everyMins||30)*60000) due=true;
     }
@@ -1198,8 +1226,11 @@ function ensureAutoTimer(){
   else if(!anyActive && state.autoTimer){ clearInterval(state.autoTimer); state.autoTimer=null; }
 }
 /* --- Auto Brews dialog: deploy the current canvas, then manage the scheduled list --- */
-function syncAbMode(){ const daily=$('#abMode').value==='daily';
-  $('#abEveryWrap').style.display=daily?'none':''; $('#abAtWrap').style.display=daily?'':'none'; }
+function syncAbMode(){ const m=$('#abMode').value, timed=(m==='daily'||m==='weekly');
+  $('#abEveryWrap').style.display=timed?'none':'';       // minutes only for interval mode
+  $('#abAtWrap').style.display=timed?'':'none';          // time shared by daily + weekly
+  $('#abDaysWrap').style.display=(m==='weekly')?'':'none'; }
+function abReadDays(){ return [...document.querySelectorAll('#abDays input:checked')].map(c=>+c.value); }
 function renderAutoList(){
   const box=$('#autoList'); if(!box) return;
   const list=autoBrews();
@@ -1253,9 +1284,12 @@ $('#abMode').onchange=syncAbMode;
 $('#abDeploy').onclick=()=>{
   if(!Object.keys(state.nodes).length){ alert('Put a flow on the canvas first (build one or load a demo), then deploy it.'); return; }
   if(!Object.values(state.nodes).some(n=>n.type==='trigger')){ alert('This flow has no ⏻ Trigger node — every brew starts from one. Add a Trigger, then deploy.'); return; }
+  const mode=$('#abMode').value;
+  const days=abReadDays();
+  if(mode==='weekly' && !days.length){ alert('Pick at least one day of the week for a weekly schedule.'); return; }
   const name=($('#abName').value||'').trim() || ('Auto Brew '+(autoBrews().length+1));
-  const entry={ id:'ab'+Math.random().toString(36).slice(2,9), name, mode:$('#abMode').value,
-    everyMins:($('#abEvery').value||'30').trim(), atTime:($('#abAt').value||'08:00').trim(),
+  const entry={ id:'ab'+Math.random().toString(36).slice(2,9), name, mode,
+    everyMins:($('#abEvery').value||'30').trim(), atTime:($('#abAt').value||'08:00').trim(), days,
     paused:false, autoSave:$('#abAutoSave').checked, lastRun:0, lastStatus:'', lastResult:'', flow:snapshotCanvas() };
   const list=autoBrews(); list.push(entry); writeAutoBrews(list);
   $('#abName').value=''; $('#abAutoSave').checked=false; renderAutoList(); updateAutoBtn(); ensureAutoTimer();

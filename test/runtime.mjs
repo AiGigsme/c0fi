@@ -124,6 +124,29 @@ check('app boots clean', errors.length === 0, errors[0] || '');
   w.document.querySelector('#app').classList.remove('no-right');
 }
 
+// --- 5. Weekly Auto Brew scheduling math (v6.8) — deterministic: abNextAt takes `now` explicitly ---
+{
+  const now = new w.Date(2026, 6, 15, 10, 0, 0).getTime();   // fixed local wall-clock; weekday derived below
+  const dow = new w.Date(now).getDay();
+  // a) selected weekday, time still ahead today -> fires today at that time
+  const later = w.abNextAt({ mode: 'weekly', days: [dow], atTime: '23:59' }, now);
+  const laterD = new w.Date(later);
+  check('weekly: time-still-ahead fires today', laterD.getDay() === dow && laterD.getHours() === 23 && laterD.getMinutes() === 59 && (later - now) < 86400000, laterD.toString());
+  // b) selected weekday, time already passed today -> fires same weekday next week (~7 days)
+  const next = w.abNextAt({ mode: 'weekly', days: [dow], atTime: '00:01' }, now);
+  check('weekly: time-passed rolls to next week', new w.Date(next).getDay() === dow && Math.round((next - now) / 86400000) === 7, new w.Date(next).toString());
+  // c) only tomorrow's weekday selected -> fires tomorrow, not today
+  const tmr = (dow + 1) % 7;
+  const tom = w.abNextAt({ mode: 'weekly', days: [tmr], atTime: '09:00' }, now);
+  check('weekly: tomorrow-only fires within 2 days', new w.Date(tom).getDay() === tmr && (tom - now) < 2 * 86400000, new w.Date(tom).toString());
+  // d) helpers: normalize, label, describe
+  check('abDays dedups + sorts', JSON.stringify(w.abDays({ days: [5, 1, 1, 3] })) === '[1,3,5]');
+  check('abDays empty -> every day', JSON.stringify(w.abDays({ days: [] })) === '[0,1,2,3,4,5,6]');
+  check('abDaysLabel names selected days', w.abDaysLabel({ days: [1, 3, 5] }) === 'Mon, Wed, Fri');
+  check('abDaysLabel all 7 -> "every day"', w.abDaysLabel({ days: [0, 1, 2, 3, 4, 5, 6] }) === 'every day');
+  check('abDesc weekly reads days + time', w.abDesc({ mode: 'weekly', days: [1, 3, 5], atTime: '09:30' }) === 'Mon, Wed, Fri at 09:30');
+}
+
 console.log('\n' + '─'.repeat(48));
 console.log(failed === 0 ? '\x1b[32mALL RUNTIME TESTS PASSED\x1b[0m' : '\x1b[31m' + failed + ' FAILED\x1b[0m');
 process.exit(failed === 0 ? 0 : 1);
