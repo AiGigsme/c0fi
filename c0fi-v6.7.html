@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>C0fi v6.2 — Local Orchestration Engine · c0fi.com</title>
+<title>C0fi v6.7 — Local Orchestration Engine · c0fi.com</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -201,6 +201,19 @@ button.mini{font-size:10px;padding:2px 8px}
 #demoSel option{background:var(--grounds);color:var(--foam);font-weight:400;padding:3px 6px}
 #brewBtn{font-family:var(--disp);font-weight:800;font-size:14px;padding:7px 18px;letter-spacing:.02em}
 #brewBtn.brewing{background:var(--copper);border-color:var(--copper);color:var(--foam)}
+#autoBrewBtn.on{background:var(--leaf);border-color:var(--leaf);color:var(--roast);font-weight:600}
+.ab-row{border:1px solid var(--wire);border-radius:8px;padding:10px 12px;margin-bottom:10px;background:var(--grounds)}
+.ab-row.paused{opacity:.6}
+.ab-row .ab-top{display:flex;align-items:center;gap:8px}
+.ab-row .ab-name{font-weight:600;color:var(--crema);flex:1}
+.ab-row .ab-meta{color:var(--sugar);font-size:11px;margin-top:4px;line-height:1.6}
+.ab-row .ab-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.ab-row .ab-dot{width:8px;height:8px;border-radius:50%;background:var(--copper);display:inline-block}
+.ab-row:not(.paused) .ab-dot{background:var(--leaf)}
+#autoDlg{max-width:640px;width:92vw}
+#autoDeploy{border:1px solid var(--wire);border-radius:8px;padding:12px;margin-bottom:14px;background:var(--bean)}
+#autoDeploy .row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+#autoDeploy .fld{flex:1;min-width:120px}
 #status{grid-area:status;display:flex;align-items:center;gap:16px;padding:0 14px;border-top:1px solid var(--wire);background:var(--bean);font-size:11px;color:var(--sugar);overflow:hidden}
 /* keep the status line to one row — a long message stays full in the Brew Log */
 #statMsg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
@@ -232,7 +245,7 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
 <div id="app">
   <header>
     <h1>C<span class="z0">0</span>fi<span>.</span></h1>
-    <span class="tag">local orchestration engine · v6.2</span>
+    <span class="tag">local orchestration engine · v6.7</span>
     <span class="tag">c0fi.com</span>
     <span class="tag" id="modelTag">no model</span>
     <div class="spacer"></div>
@@ -246,7 +259,7 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
 
   <aside id="palette">
     <h2>Ingredients</h2>
-    <div class="pal-node" data-type="trigger"><span class="chip">start</span><b>⏻ Trigger</b><i>Starts the brew. Manual or looped.</i></div>
+    <div class="pal-node" data-type="trigger"><span class="chip">start</span><b>⏻ Trigger</b><i>Starts the brew. Manual or looped. Schedule whole flows via ⏰ Auto Brews.</i></div>
     <div class="pal-node" data-type="llm"><span class="chip">c0fi</span><b>☕ C0fi Think</b><i>Local model reasons over input.</i></div>
     <div class="pal-node" data-type="decision"><span class="chip">c0fi</span><b>⑂ Decision</b><i>Model picks which branch fires.</i></div>
     <div class="pal-node" data-type="branch"><span class="chip">js</span><b>⎇ Code Branch</b><i>JS picks the branch — instant, free, no model.</i></div>
@@ -273,6 +286,7 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
       <button id="undoBtn" title="Undo (⌘/Ctrl+Z)" disabled>↶</button>
       <button id="redoBtn" title="Redo (⌘/Ctrl+Shift+Z)" disabled>↷</button>
       <button id="clearBtn">Clear canvas</button>
+      <button id="autoBrewBtn" title="Schedule whole flows to brew automatically on a timer">⏰ Auto Brews</button>
       <select id="demoSel" title="Load a demo flow">
         <option value="">Load demo flow…</option>
         <optgroup label="① Retrieval &amp; RAG">
@@ -433,9 +447,29 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
     <button id="setSave" class="primary">Save</button>
   </div>
 </dialog>
+<dialog id="autoDlg">
+  <h3 style="margin:0 0 2px">⏰ Auto Brews</h3>
+  <div class="sub" style="margin-bottom:12px">List of flows scheduled for automatic brewing. They run while this tab stays open and the machine is awake — closing the tab pauses them.</div>
+  <div id="autoDeploy">
+    <div style="font-weight:600;margin-bottom:8px">Deploy the current canvas</div>
+    <div class="row">
+      <div class="fld"><label>Name</label><input id="abName" placeholder="Morning digest"></div>
+      <div class="fld"><label>Schedule</label>
+        <select id="abMode"><option value="every">every N minutes</option><option value="daily">daily at time</option></select></div>
+      <div class="fld" id="abEveryWrap"><label>Minutes</label><input id="abEvery" value="30"></div>
+      <div class="fld" id="abAtWrap" style="display:none"><label>Time (24h HH:MM)</label><input id="abAt" value="08:00"></div>
+      <button class="primary" id="abDeploy">＋ Deploy</button>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;width:auto;margin-top:10px;cursor:pointer">
+      <input type="checkbox" id="abAutoSave" style="width:auto"> ⤓ Auto-save each run's result to a .txt file (downloads folder)</label>
+    <div class="sub" style="margin-top:8px">Tip: keep scheduled flows fully automatic — a flow with an Interaction node will pause waiting for a human and stall the background run. Auto-save captures your ◎ Output node(s); the browser may only save while this tab is focused.</div>
+  </div>
+  <div id="autoList"></div>
+  <div class="row" style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end"><button id="autoClose">Close</button></div>
+</dialog>
 <script>
 /* =========================================================
-   C0fi v6.2 — everything on the canvas is inside the loop:
+   C0fi v6.7 — everything on the canvas is inside the loop:
    decide → orchestrate → create → build → run → learn.
    ========================================================= */
 const $ = s => document.querySelector(s);
@@ -450,7 +484,10 @@ const state = {
   toolCatalogs: {},     // mcp server url -> discovered tools
   running: false,
   selected: null,
-  loops: 0
+  loops: 0,
+  autoTimer: null,      // v6.4 Auto Brews: interval that fires scheduled flows while this tab is open
+  autoBusy: false,      // v6.5 mutex: true while an Auto Brew owns the engine (swap → brew → restore)
+  autoRunning: null     // v6.7: id of the Auto Brew whose run currently holds the engine (else null)
 };
 
 const NODE_DEFS = {
@@ -602,6 +639,7 @@ function refresh(){
   Object.keys(state.nodes).forEach(renderNode); drawWires();
   $('#statCounts').textContent = `${Object.keys(state.nodes).length} nodes · ${state.wires.length} wires`;
   drawMinimap();
+  if(typeof updateAutoBtn==='function') updateAutoBtn();
 }
 function selectNode(id){ state.selected=id;
   document.querySelectorAll('.node').forEach(el=>el.classList.toggle('sel', el.id===id));
@@ -1035,7 +1073,197 @@ async function brew(){
   $('#brewBtn').textContent='⏻ Brew'; $('#brewBtn').classList.remove('brewing');
   $('#loopBadge').textContent='';
 }
-$('#stopBtn').onclick=()=>{ stopFlag=true; brewAbort?.abort(); if(pendingChat){ const r=pendingChat; pendingChat=null; endChatInput(); hideCanvasChat(); r(null); } };
+function stopBrew(){ stopFlag=true; brewAbort?.abort(); if(pendingChat){ const r=pendingChat; pendingChat=null; endChatInput(); hideCanvasChat(); r(null); } }
+$('#stopBtn').onclick=stopBrew;
+
+/* ---------- Auto Brews (v6.4): schedule whole flows to brew automatically ----------
+   A deployed Auto Brew is a full snapshot of a flow (nodes + wires) plus a schedule.
+   Many can be deployed and run independently. When one is due AND the canvas is idle,
+   the engine snapshots your current canvas, swaps the scheduled flow in, brews it, then
+   restores your canvas — a background brew never loses the work you have open.
+   In-browser only (tier 1): Auto Brews fire while THIS TAB stays open and the machine is
+   awake. Closing the tab pauses them. Deployed brews persist across reloads (localStorage);
+   each keeps an explicit paused flag you control. */
+function autoBrews(){ try{ return JSON.parse(localStorage.getItem('c0fi.autobrews')||'[]'); }catch{ return []; } }
+function writeAutoBrews(list){ try{ localStorage.setItem('c0fi.autobrews', JSON.stringify(list)); }catch{} }
+// Scoped, fresh read-modify-write of ONE entry. A run reads the list at its start but finishes
+// seconds later; writing the whole stale list back would resurrect entries the user deleted (or
+// undo a pause/toggle) mid-run. patchAutoBrew re-reads current state and updates only this entry —
+// and no-ops if it was deleted while the run was in flight, so a single Delete always sticks.
+function patchAutoBrew(id, fields){
+  const list=autoBrews(); const e=list.find(x=>x.id===id);
+  if(!e) return false;
+  Object.assign(e, fields); writeAutoBrews(list); return true;
+}
+function abDesc(e){ return e.mode==='daily' ? 'daily at '+(e.atTime||'08:00') : 'every '+Math.max(1,+e.everyMins||30)+' min'; }
+function abSameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function abNextAt(e, now){
+  if(e.mode==='daily'){ const d=new Date(now); const [hh,mm]=String(e.atTime||'08:00').split(':').map(x=>+x);
+    d.setHours(hh||0,mm||0,0,0); let t=d.getTime(); if(t<=now) t+=86400000; return t; }
+  const mins=Math.max(1,+e.everyMins||30); return (e.lastRun||now)+mins*60000;
+}
+function abWhen(e){ const now=Date.now(), dm=Math.max(0,Math.round((abNextAt(e,now)-now)/60000));
+  return dm<60 ? 'next in '+dm+'m' : 'next in '+Math.floor(dm/60)+'h '+(dm%60)+'m'; }
+function abTimeStr(ts){ if(!ts) return 'never'; try{ return new Date(ts).toLocaleString(); }catch{ return String(ts); } }
+function snapshotCanvas(){
+  return { nodes:Object.values(state.nodes).map(n=>({id:n.id,type:n.type,name:n.name,x:n.x,y:n.y,cfg:n.cfg})),
+           wires:state.wires.map(w=>({from:w.from,fromPort:w.fromPort,to:w.to})) };
+}
+function loadSnapshot(snap){ state.nodes={}; state.wires=[]; nodesEl.innerHTML=''; closeDrawer(); instantiateFlow(snap,0,0); refresh(); }
+function updateAutoBtn(){
+  const b=$('#autoBrewBtn'); if(!b) return;
+  const list=autoBrews(), active=list.filter(e=>!e.paused).length;
+  b.textContent='⏰ Auto Brews'+(list.length?' ('+active+'/'+list.length+')':'');
+  b.classList.toggle('on', active>0);
+}
+// pull the finished flow's results out of the (still-loaded) canvas, before we restore yours.
+// prefer ◎ Output nodes; fall back to terminal nodes (no outgoing wire) that produced output.
+function collectFlowResult(){
+  const outs=Object.values(state.nodes).filter(n=>n.type==='output' && n.out!=null);
+  if(outs.length) return outs.map(n=>'◎ '+(n.cfg.label||n.name)+':\n'+str(n.out)).join('\n\n');
+  const hasOut=new Set(state.wires.map(w=>w.from));
+  const terms=Object.values(state.nodes).filter(n=>n.out!=null && !hasOut.has(n.id));
+  const pick=terms.length?terms:Object.values(state.nodes).filter(n=>n.out!=null);
+  return pick.map(n=>n.name+':\n'+str(n.out)).join('\n\n');
+}
+function abStamp(){ const d=new Date(), p=x=>String(x).padStart(2,'0');
+  return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds()); }
+function downloadText(fname, text){
+  try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));
+    a.download=fname; a.click(); return true; }
+  catch(e){ log('err','Could not save .txt: '+e.message); return false; }
+}
+async function runAutoBrew(idOrEntry, manual, tries){
+  tries=tries||0;
+  const wantId=(idOrEntry&&idOrEntry.id)||idOrEntry;
+  const list=autoBrews(); const e=list.find(x=>x.id===wantId); if(!e) return false;
+  // ---- hold-and-retry: never two brews at once ----
+  if(state.running || state.autoBusy){
+    if(manual){
+      if(tries>=5){ log('err','Auto Brew "'+e.name+'" held 5 times while the engine stayed busy — giving up. Try Run now again later.'); return false; }
+      log('run','⏳ Auto Brew "'+e.name+'" is waiting — another brew is running. Will try again in 2 min.');
+      setTimeout(()=>runAutoBrew(wantId, true, tries+1), 120000);
+    }
+    return false;   // scheduled runs just wait for the next 15s tick (they stay due)
+  }
+  state.autoBusy=true; state.autoRunning=wantId;   // claim the engine synchronously, before any await
+  const backCanvas=snapshotCanvas(), backMem=state.memory, backSel=state.selected;
+  let okRun=false, resFields=null;           // only the result fields get persisted, via patchAutoBrew
+  try{
+    state.memory={};                         // fresh blackboard so a background run can't pollute your canvas memory
+    loadSnapshot(e.flow);
+    log('run','⏰ Auto Brew "'+e.name+'" starting'+(manual?' (Run now)':'')+' — your canvas will restore when it finishes.');
+    await brew();
+    const result=collectFlowResult();        // capture BEFORE restoring your canvas
+    resFields={ lastRun:Date.now(), lastStatus:'ok', lastResult:str(result).slice(0,50000) }; okRun=true;
+    if(e.autoSave){
+      if(result){ if(downloadText((e.name||'auto-brew').replace(/\s+/g,'-').toLowerCase()+'-'+abStamp()+'.txt', result))
+        log('ok','⤓ Saved "'+e.name+'" result to a .txt file (check your Downloads).'); }
+      else log('run','"'+e.name+'" produced no Output — nothing to auto-save. Add a ◎ Output node to capture a result.');
+    }
+  }catch(err){ resFields={ lastRun:Date.now(), lastStatus:'error: '+err.message }; log('err','Auto Brew "'+e.name+'" failed: '+err.message); }
+  finally{
+    state.memory=backMem; state.selected=backSel;
+    loadSnapshot(backCanvas);
+    state.autoBusy=false; state.autoRunning=null;
+    // persist ONLY this entry's fresh result fields — never a stale whole-list write, so a
+    // delete/pause made during the run is preserved (patchAutoBrew no-ops if it was deleted).
+    if(resFields) patchAutoBrew(wantId, resFields);
+    if($('#autoDlg').open) renderAutoList(); updateAutoBtn();
+  }
+  return okRun;
+}
+async function autoTick(){
+  const list=autoBrews(); if(!list.some(e=>!e.paused)) return;
+  // never hijack the canvas mid-edit, and never overlap a run: only when fully idle
+  if(state.running || state.autoBusy || $('#drawer').classList.contains('open') || pendingWire || drag) return;
+  const now=Date.now(), nowD=new Date(now);
+  for(const e of list){
+    if(e.paused) continue;
+    let due=false;
+    if(e.mode==='daily'){
+      const [hh,mm]=String(e.atTime||'08:00').split(':').map(x=>+x);
+      const dueMin=(hh||0)*60+(mm||0), curMin=nowD.getHours()*60+nowD.getMinutes();
+      const ranToday = e.lastRun && abSameDay(new Date(e.lastRun), nowD);
+      if(!ranToday && curMin>=dueMin && curMin<dueMin+2) due=true;
+    }else{
+      if(now-(e.lastRun||0) >= Math.max(1,+e.everyMins||30)*60000) due=true;
+    }
+    if(due){ await runAutoBrew(e.id, false); return; }   // one per tick; brew() is exclusive anyway
+  }
+}
+function ensureAutoTimer(){
+  const anyActive=autoBrews().some(e=>!e.paused);
+  if(anyActive && !state.autoTimer) state.autoTimer=setInterval(autoTick, 15000);
+  else if(!anyActive && state.autoTimer){ clearInterval(state.autoTimer); state.autoTimer=null; }
+}
+/* --- Auto Brews dialog: deploy the current canvas, then manage the scheduled list --- */
+function syncAbMode(){ const daily=$('#abMode').value==='daily';
+  $('#abEveryWrap').style.display=daily?'none':''; $('#abAtWrap').style.display=daily?'':'none'; }
+function renderAutoList(){
+  const box=$('#autoList'); if(!box) return;
+  const list=autoBrews();
+  if(!list.length){ box.innerHTML='<div class="sub" style="padding:6px 2px">No Auto Brews yet. Build a flow, confirm it works with ⏻ Brew, then deploy it above.</div>'; return; }
+  box.innerHTML=list.map(e=>`
+    <div class="ab-row${e.paused?' paused':''}" data-id="${esc(e.id)}">
+      <div class="ab-top"><span class="ab-dot"></span><span class="ab-name">${esc(e.name)}</span>
+        <span class="sub">${e.flow.nodes.length} nodes</span></div>
+      <div class="ab-meta">${esc(abDesc(e))} · ${e.paused?'paused':esc(abWhen(e))} · auto-save ${e.autoSave?'on':'off'}<br>last run: ${esc(abTimeStr(e.lastRun))}${e.lastStatus?' · '+esc(e.lastStatus):''}${e.lastResult?'<br>last result: '+esc(trunc(e.lastResult,90)):''}</div>
+      <div class="ab-btns">
+        <button class="mini" data-act="run">▶ Run now</button>
+        <button class="mini" data-act="toggle">${e.paused?'▶ Resume':'⏸ Pause'}</button>
+        <button class="mini" data-act="autosave">${e.autoSave?'⤓ Auto-save: on':'⤓ Auto-save: off'}</button>
+        <button class="mini" data-act="save"${e.lastResult?'':' disabled'}>⤓ Save .txt</button>
+        <button class="mini" data-act="update">✎ Update flow</button>
+        <button class="mini" data-act="del">🗑 Delete</button>
+      </div>
+    </div>`).join('');
+  box.querySelectorAll('.ab-row').forEach(row=>{
+    const id=row.dataset.id;
+    row.querySelector('[data-act="run"]').onclick=()=>runAutoBrew(id, true);
+    row.querySelector('[data-act="toggle"]').onclick=()=>abToggle(id);
+    row.querySelector('[data-act="autosave"]').onclick=()=>abToggleSave(id);
+    row.querySelector('[data-act="save"]').onclick=()=>abSaveTxt(id);
+    row.querySelector('[data-act="update"]').onclick=()=>abUpdateFlow(id);
+    row.querySelector('[data-act="del"]').onclick=()=>abDelete(id);
+  });
+}
+function abToggleSave(id){ const list=autoBrews(); const e=list.find(x=>x.id===id); if(!e) return;
+  e.autoSave=!e.autoSave; writeAutoBrews(list); renderAutoList();
+  log('ok','Auto Brew "'+e.name+'" — auto-save '+(e.autoSave?'on: each run downloads a .txt.':'off.')); }
+function abSaveTxt(id){ const list=autoBrews(); const e=list.find(x=>x.id===id); if(!e) return;
+  if(!e.lastResult){ alert('"'+e.name+'" has no captured result yet — Run now first.'); return; }
+  if(downloadText((e.name||'auto-brew').replace(/\s+/g,'-').toLowerCase()+'-'+abStamp()+'.txt', e.lastResult))
+    log('ok','⤓ Saved "'+e.name+'" last result to a .txt file.'); }
+function abToggle(id){ const list=autoBrews(); const e=list.find(x=>x.id===id); if(!e) return;
+  e.paused=!e.paused; writeAutoBrews(list); renderAutoList(); updateAutoBtn(); ensureAutoTimer();
+  log('ok','Auto Brew "'+e.name+'" '+(e.paused?'paused':'resumed')+'.'); }
+function abDelete(id){ const list=autoBrews(); const e=list.find(x=>x.id===id); if(!e) return;
+  const isRunning = state.autoRunning===id;
+  if(!confirm('Delete Auto Brew "'+e.name+'"?'+(isRunning?' It is running right now — deleting will also stop it.':' This removes its schedule and saved flow snapshot.'))) return;
+  if(isRunning){ stopBrew(); log('run','Stopping the in-progress run of "'+e.name+'" before deleting…'); }  // Stop is part of Delete now
+  writeAutoBrews(list.filter(x=>x.id!==id)); renderAutoList(); updateAutoBtn(); ensureAutoTimer();
+  log('ok','Deleted Auto Brew "'+e.name+'".'+(isRunning?' Its run was stopped; your canvas will restore momentarily.':'')); }
+function abUpdateFlow(id){ const list=autoBrews(); const e=list.find(x=>x.id===id); if(!e) return;
+  if(!Object.keys(state.nodes).length){ alert('The canvas is empty — nothing to update the flow with.'); return; }
+  if(!confirm('Replace the saved flow behind "'+e.name+'" with the current canvas ('+Object.keys(state.nodes).length+' nodes)?')) return;
+  e.flow=snapshotCanvas(); writeAutoBrews(list); renderAutoList();
+  log('ok','Updated the flow behind Auto Brew "'+e.name+'".'); }
+$('#abMode').onchange=syncAbMode;
+$('#abDeploy').onclick=()=>{
+  if(!Object.keys(state.nodes).length){ alert('Put a flow on the canvas first (build one or load a demo), then deploy it.'); return; }
+  if(!Object.values(state.nodes).some(n=>n.type==='trigger')){ alert('This flow has no ⏻ Trigger node — every brew starts from one. Add a Trigger, then deploy.'); return; }
+  const name=($('#abName').value||'').trim() || ('Auto Brew '+(autoBrews().length+1));
+  const entry={ id:'ab'+Math.random().toString(36).slice(2,9), name, mode:$('#abMode').value,
+    everyMins:($('#abEvery').value||'30').trim(), atTime:($('#abAt').value||'08:00').trim(),
+    paused:false, autoSave:$('#abAutoSave').checked, lastRun:0, lastStatus:'', lastResult:'', flow:snapshotCanvas() };
+  const list=autoBrews(); list.push(entry); writeAutoBrews(list);
+  $('#abName').value=''; $('#abAutoSave').checked=false; renderAutoList(); updateAutoBtn(); ensureAutoTimer();
+  log('ok','Deployed "'+name+'" to Auto Brews ('+abDesc(entry)+'). It will brew automatically while this tab stays open.');
+};
+$('#autoBrewBtn').onclick=()=>{ syncAbMode(); renderAutoList(); updateAutoBtn(); $('#autoDlg').showModal(); };
+$('#autoClose').onclick=()=>$('#autoDlg').close();
+ensureAutoTimer(); updateAutoBtn();   // resume any persisted Auto Brews on load
 
 /* ---------- interactive brew: chat bubbles + a reply bar that appears only while a node waits ---------- */
 let pendingChat = null;
@@ -1641,7 +1869,7 @@ function showTab(which){
   $('#paneChat').classList.toggle('on',which==='chat'); $('#paneRun').classList.toggle('on',which==='run');
 }
 $('#tabChat').onclick=()=>showTab('chat'); $('#tabRun').onclick=()=>showTab('run');
-$('#brewBtn').onclick=brew;
+$('#brewBtn').onclick=()=>{ if(state.autoBusy){ log('err','An Auto Brew is running right now — wait for it to finish, then Brew.'); showTab('run'); return; } brew(); };
 $('#clearBtn').onclick=()=>{ if(!confirm('Clear the canvas?'))return; pushUndo();
   state.nodes={}; state.wires=[]; state.memory={}; nodesEl.innerHTML=''; closeDrawer();
   $('#demoSel').value=''; $('#mySel').value=''; refresh(); };

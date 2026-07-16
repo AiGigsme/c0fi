@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>C0fi v6.2 — User Guide · c0fi.com</title>
+<title>C0fi v6.7 — User Guide · c0fi.com</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -57,7 +57,7 @@ footer{margin-top:70px;border-top:1px solid var(--wire);padding-top:18px;color:v
 
 <header class="hero">
   <h1>C<span class="z0">0</span>fi<span>.</span> User Guide</h1>
-  <div class="sub">v6.2 · local orchestration engine · single file · no cloud · c0fi.com</div>
+  <div class="sub">v6.7 · local orchestration engine · single file · no cloud · c0fi.com</div>
 </header>
 
 <div class="toc">
@@ -71,8 +71,9 @@ footer{margin-top:70px;border-top:1px solid var(--wire);padding-top:18px;color:v
   <a href="#brew">8. How a brew executes</a>
   <a href="#memory">9. The Memory blackboard</a>
   <a href="#io">10. Saving, loading, and your flow library</a>
-  <a href="#recipes">11. Recipes &amp; the demo library</a>
-  <a href="#trouble">12. Troubleshooting</a>
+  <a href="#auto">11. Auto Brews — schedule flows to run automatically <span class="chip new">v6.7</span></a>
+  <a href="#recipes">12. Recipes &amp; the demo library</a>
+  <a href="#trouble">13. Troubleshooting</a>
 </div>
 
 <h2 id="what">1. What C0fi is</h2>
@@ -84,9 +85,11 @@ footer{margin-top:70px;border-top:1px solid var(--wire);padding-top:18px;color:v
   <li><strong>Build</strong> — it edits, extends, and re-runs flows mid-conversation, including flows you drew by hand.</li>
 </ul>
 <p class="dim">Everything runs in one HTML file against your local Ollama. No accounts, no telemetry. One small local helper (<code>c0fi_server.py</code>) upgrades web search and page reading from real result pages; flows export as JSON files you own, or save to a browser-local library.</p>
-<div class="callout good"><b>New in v6.2</b>A <strong>model pool</strong> — Engine settings now has four model slots (<strong>Model</strong>, <strong>Verifier</strong>, <strong>Model C</strong>, <strong>Model D</strong>), so different nodes can run on different models (§2, §5) · a node's <strong>model override is now a live dropdown</strong> of the models your engine actually has, plus the four slots — no more hand-typing names (§5) · the <strong>Verifier bench</strong> demo's three judges read the Verifier / Model C / Model D slots and are labelled <strong>Judge 1–3</strong>, so setting three real models gives you genuinely independent judging (§11) · an <strong>exported app that lands with no engine</strong> shows a short "run me on Ollama" hint instead of failing silently (§10) · the status line no longer overflows when a message is long — the full text stays in the Brew Log.</div>
+<div class="callout good"><b>New in v6.3 → v6.7 — Auto Brews</b>Flows can now run <strong>on a schedule, by themselves</strong>. The new <strong>⏰ Auto Brews</strong> button (next to Clear canvas) deploys whole flows to a scheduled list — <strong>every N minutes</strong> or <strong>daily at a time</strong> — and they brew automatically while the tab is open (§11). Deploy as many as you want; each is <strong>pausable, deletable, and runs independently</strong>. Every run can <strong>auto-save its result to a .txt file</strong>, and there's a per-brew <strong>⤓ Save .txt</strong> for the last result. A single engine lock means brews never collide — a busy engine <strong>holds and retries</strong> instead. Deleting a brew that's running <strong>stops it for you</strong>. See §11 for the whole workflow.</div>
 
-<div class="callout good"><b>New in v6.1</b>A <strong>⇉ Gather</strong> join node (§5) that waits for several producers and hands you one array · <strong>undo / redo</strong> and node <strong>copy-paste</strong> on the canvas (§4) · <strong>engine settings now persist</strong> across reloads — no reconnecting every session · <strong>Stop</strong> cancels an in-flight generation instantly instead of at the next node (§8) · a waiting <strong>💬 Interaction</strong> node now shows a "✍ your turn" badge and a reply bar on the canvas itself, so a chat is answerable even in focus mode (§5) · a saved model that Ollama no longer has is flagged at connect time, not as a cryptic error mid-brew (§12).</div>
+<div class="callout good"><b>New in v6.2</b>A <strong>model pool</strong> — Engine settings now has four model slots (<strong>Model</strong>, <strong>Verifier</strong>, <strong>Model C</strong>, <strong>Model D</strong>), so different nodes can run on different models (§2, §5) · a node's <strong>model override is now a live dropdown</strong> of the models your engine actually has, plus the four slots — no more hand-typing names (§5) · the <strong>Verifier bench</strong> demo's three judges read the Verifier / Model C / Model D slots and are labelled <strong>Judge 1–3</strong>, so setting three real models gives you genuinely independent judging (§12) · an <strong>exported app that lands with no engine</strong> shows a short "run me on Ollama" hint instead of failing silently (§10) · the status line no longer overflows when a message is long — the full text stays in the Brew Log.</div>
+
+<div class="callout good"><b>New in v6.1</b>A <strong>⇉ Gather</strong> join node (§5) that waits for several producers and hands you one array · <strong>undo / redo</strong> and node <strong>copy-paste</strong> on the canvas (§4) · <strong>engine settings now persist</strong> across reloads — no reconnecting every session · <strong>Stop</strong> cancels an in-flight generation instantly instead of at the next node (§8) · a waiting <strong>💬 Interaction</strong> node now shows a "✍ your turn" badge and a reply bar on the canvas itself, so a chat is answerable even in focus mode (§5) · a saved model that Ollama no longer has is flagged at connect time, not as a cryptic error mid-brew (§13).</div>
 
 <h2 id="setup">2. Setup — one command, or the second-port method</h2>
 <p>C0fi needs two things reachable from the browser: your Ollama model server (with CORS allowed) and — for real web search / page reading — the local <code>c0fi_server.py</code> engine. There's now a launcher that starts everything and opens the app for you.</p>
@@ -134,7 +137,7 @@ open -a Ollama        # fresh app inherits the setenv</code></pre>
   <tr><td>Brew Log (right tab)</td><td>Timestamped execution log: prompts, decisions, tool calls, outputs, errors. Think and Critic outputs <strong>stream in live</strong> as the model generates them.</td></tr>
   <tr><td>Status bar</td><td>Last event, loop-pass counter, node/wire counts.</td></tr>
 </table>
-<p class="dim">The demo dropdown ships <strong>twenty-one flows in four groups</strong> — ① Retrieval &amp; RAG, ② Chains, Routing &amp; Agents, ③ Quality, Judging &amp; Loops, ④ Interactive &amp; Chat. Each group pairs C0fi's originals with LangChain-canonical patterns rebuilt from the same nodes (see §11). The header also carries <strong>Export/Import flow</strong> and <strong>▶ Build App</strong>, which turns the current flow into a standalone app file (§10).</p>
+<p class="dim">The demo dropdown ships <strong>twenty-one flows in four groups</strong> — ① Retrieval &amp; RAG, ② Chains, Routing &amp; Agents, ③ Quality, Judging &amp; Loops, ④ Interactive &amp; Chat. Each group pairs C0fi's originals with LangChain-canonical patterns rebuilt from the same nodes (see §12). The header also carries <strong>Export/Import flow</strong> and <strong>▶ Build App</strong>, which turns the current flow into a standalone app file (§10).</p>
 
 <h2 id="canvas">4. Canvas controls</h2>
 <ul>
@@ -186,7 +189,7 @@ return /^https?:\/\//.test(String(input)) ? 'A' : 'B';</code></pre>
 <p>Fetches a URL and returns clean readable text. <code>proxy</code> mode uses the engine's <code>/api/read</code> extractor; <code>jina</code> mode uses the free r.jina.ai reader (no local server needed). It extracts the first URL found in its input, so an upstream node that answers with a URL wires straight in. Output is capped at 12K characters to protect downstream context.</p>
 
 <h3>⚙ Tool Server <span class="chip">mcp</span></h3>
-<p>The universal socket: calls any tool on any MCP server over HTTP. Three behaviors: leave <code>tool</code> empty and it outputs the server's tool catalog mid-brew; open the node's drawer and press <strong>⌕ discover tools</strong> to browse and cache the catalog (cached catalogs are fed to the Orchestrator, so C0fi can build with tools it just learned about); or set a tool name and JSON <code>args</code> to call it. <code>{{input}}</code> and <code>{{memory.key}}</code> inside args are JSON-escaped automatically, so quotes and newlines in payloads can't break the call. The discover list shows each tool's <strong>parameter schema</strong> (* = required) and clicking a tool scaffolds correct arguments. The <code>cleanup</code> field names a tool to fire with <code>{}</code> if the call fails (e.g. <code>stop_task</code>), so failures never leave orphaned jobs. The built-in engine advertises <code>web_search</code>, <code>read_page</code>, and <code>ask_llm</code> at <code>http://localhost:8790/mcp</code>. See §6.</p>
+<p>The universal socket: calls any tool on any MCP server over HTTP. Three behaviors: leave <code>tool</code> empty and it outputs the server's tool catalog mid-brew; open the node's drawer and press <strong>⌕ discover tools</strong> to browse and cache the catalog (cached catalogs are fed to the Orchestrator, so C0fi can build with tools it just learned about); or set a tool name and JSON <code>args</code> to call it. <code>{{input}}</code> and <code>{{memory.key}}</code> inside args are JSON-escaped automatically, so quotes and newlines in payloads can't break the call. The discover list shows each tool's <strong>parameter schema</strong> (* = required) and clicking a tool scaffolds correct arguments. The <code>cleanup</code> field names a tool to fire with <code>{}</code> if the call fails (e.g. <code>stop_task</code>), so failures never leave orphaned jobs. The built-in engine advertises five tools — <code>web_search</code>, <code>read_page</code>, <code>ask_llm</code>, and the knowledge-base pair <code>kb_search</code> / <code>kb_list</code> (§6) — at <code>http://localhost:8790/mcp</code>. See §6.</p>
 
 <h3>⟳ Watch Task <span class="chip">mcp</span></h3>
 <p>Fire-and-monitor for long-running tools — the right shape for browser agents and any job that outlives a polite HTTP request. It starts <code>startTool</code> (default <code>execute_task</code>) without betting everything on that one reply, then polls <code>statusTool</code> on an interval, logging each status change; when the job truly finishes, the real result is captured, logged with a save button, and passed downstream. Every failure exit — deadline (<code>maxMins</code>), task error, or you pressing Stop — automatically fires <code>stopTool</code> first, so nothing is ever left running unattended.</p>
@@ -212,7 +215,7 @@ return d.title + ' — ' + d.url;</code></pre>
 
 <h3>💬 Interaction <span class="chip new">live · new</span></h3>
 <p>Turns a brew into a <strong>live session</strong>. When the flow reaches this node it <em>pauses</em>, shows a message in the Brew Log, and waits for you to type a reply — a reply box appears at the bottom of the run pane. Your reply flows out the port; the brew resumes. On the first turn it shows its <code>greeting</code>; on later turns it shows whatever arrives on its in-port (usually the previous answer). Wire it in a loop — <code>Interaction → (do something with the reply) → back to Interaction</code> — and you have a multi-turn chatbot where the whole conversation is one brew. Type the <code>endWord</code> (default <code>bye</code>) or press <strong>Stop</strong> to end.</p>
-<div class="callout good"><b>Conversations don't hit the safety valve</b>Each turn is human-gated, so the loop counter resets when the flow passes through an Interaction node — a chat can run for as many turns as you like. The valve still catches a runaway <em>automated</em> loop (one that never waits for a human) within a single turn. Pair this node with <code>kb_search</code> (§6) to build a "chat with your docs" bot — see the ④ Interactive &amp; Chat demos in §11.</div>
+<div class="callout good"><b>Conversations don't hit the safety valve</b>Each turn is human-gated, so the loop counter resets when the flow passes through an Interaction node — a chat can run for as many turns as you like. The valve still catches a runaway <em>automated</em> loop (one that never waits for a human) within a single turn. Pair this node with <code>kb_search</code> (§6) to build a "chat with your docs" bot — see the ④ Interactive &amp; Chat demos in §12.</div>
 <div class="callout good"><b>Visible in focus mode <span class="chip new">v6.1</span></b>A waiting Interaction node now pulses a <strong>"✍ your turn"</strong> badge on its card (at any zoom), and when the Orchestrator panel is collapsed a reply bar floats over the bottom of the canvas — type and press <kbd>Enter</kbd> there just like the panel's bar. So a full-canvas or focus-mode session still shows that the chat has started and lets you answer without reopening the panel. The full transcript stays in the Brew Log.</div>
 
 <h3>⇉ Gather <span class="chip new">join · new</span></h3>
@@ -232,7 +235,7 @@ python3 c0fi_server.py 8795       # any port, if the default is taken</code></pr
 
 <h3>RAG over your own files — the <code>knowledge/</code> folder <span class="chip new">new</span></h3>
 <p>Drop <code>.txt</code> / <code>.md</code> files into the <code>knowledge/</code> folder next to <code>c0fi_server.py</code>, and <code>kb_search</code> retrieves the passages most relevant to a query — each tagged with its source filename — so a flow can answer grounded in <em>your</em> documents instead of the web. Call it from a Tool Server node: tool <code>kb_search</code>, args <code>{"query":"{{input}}","k":3}</code>. <code>kb_list</code> shows what's available.</p>
-<div class="callout"><b>Collections keep knowledge bases separate</b>The <code>knowledge/</code> folder can hold subfolders, each a named <strong>collection</strong> — its own knowledge base. Pass a <code>folder</code> argument to search one: <code>{"query":"{{input}}","k":3,"folder":"coffee"}</code>. C0fi ships three: <code>coffee/</code> (a sample shop KB), <code>cofi-guide/</code> (C0fi's own documentation), and <code>user-docs/</code> (empty, for <em>your</em> files). This is what lets one engine serve several unrelated bases without their answers bleeding into each other — the <strong>Help desk</strong> demo (§11) even routes each question to the right collection automatically.</div>
+<div class="callout"><b>Collections keep knowledge bases separate</b>The <code>knowledge/</code> folder can hold subfolders, each a named <strong>collection</strong> — its own knowledge base. Pass a <code>folder</code> argument to search one: <code>{"query":"{{input}}","k":3,"folder":"coffee"}</code>. C0fi ships three: <code>coffee/</code> (a sample shop KB), <code>cofi-guide/</code> (C0fi's own documentation), and <code>user-docs/</code> (empty, for <em>your</em> files). This is what lets one engine serve several unrelated bases without their answers bleeding into each other — the <strong>Help desk</strong> demo (§12) even routes each question to the right collection automatically.</div>
 <div class="callout good"><b>Point it at your own files</b>Drop your <code>.txt</code>/<code>.md</code> into <code>knowledge/user-docs/</code>, delete the placeholder <code>README.md</code>, and Brew the <strong>Chat with YOUR docs</strong> demo — it's already wired to that folder, nothing to edit. (Or make a new subfolder and set the tool node's <code>folder</code> arg to match.) Ask before adding files and the bot just tells you where to put them.</div>
 <div class="callout"><b>Lexical now, semantic optional</b>Retrieval is <strong>lexical by default</strong> (keyword/BM25-style scoring with light stemming) — zero setup, works the moment you add files, and suits FAQ-style docs where the answer shares words with the question. For <strong>semantic</strong> matching (better when wording differs), set <code>USE_EMBEDDINGS = True</code> near the top of <code>c0fi_server.py</code> and pull an embedding model first: <code>ollama pull nomic-embed-text</code>. It falls back to lexical if the embed model isn't available.</div>
 <div class="callout warn"><b>Restart the engine after adding files</b>After editing <code>c0fi_server.py</code> or adding documents, kill any old instance before restarting (<code>lsof -ti :8790 | xargs kill</code>, then <code>./start.sh</code>) — a stale copy keeps answering without your new files or tools.</div>
@@ -279,7 +282,7 @@ python3 mcp_stdio_bridge.py 8795 -- npx -y @modelcontextprotocol/server-filesyst
 <div class="callout"><b>Orange action cards</b>When C0fi builds or edits, an orange card in the chat lists what it did (e.g. <em>Trigger → Summarize → Publish gate</em>). If the layout lands awkwardly, drag nodes around — position is cosmetic, wires are truth.</div>
 <div class="callout good"><b>✨ Refine — feed a critique back in <span class="chip new">new in v5.7</span></b>Next to Send is a <strong>Refine</strong> button. Paste in <em>behavioral feedback</em> — a bug you saw, a wrong result, or a reviewer's critique (even one from another model) — and hit Refine. Instead of building from scratch, the Orchestrator diagnoses which node caused the behavior and patches it with the minimal set of edits, preferring to rewrite existing nodes over adding new ones. It's the same builder LLM, framed for fixing rather than creating. One honest caveat: whether the local model gets the fix <em>right</em> from a critique depends on the model — for a precise, known fix, editing the node yourself is still the surest path; Refine shines for iteration and for feedback you'd rather not hand-translate into node edits.</div>
 <div class="callout good"><b>The architect check — builds get validated <span class="chip new">new in v5.9</span></b>After every build or Refine, a <strong>deterministic validator</strong> checks the result — pure graph facts, no second model: it adds a missing Trigger, appends a missing <code>{{input}}</code> to nodes that forgot it, and (the newest part) catches any node the builder <em>added but left unwired</em>. When it finds dangling nodes it asks the Orchestrator to connect just those; anything it still can't wire is <strong>highlighted red</strong> with a note telling you to drag a wire in — it never silently guesses a connection. This is the "let code check, let models interpret" rule applied to the build step: the judging is deterministic and free, the model is used only to fix what the check identifies.</div>
-<div class="callout good"><b>Quick-fill example buttons</b>Two rows of one-click starters sit above the chat input. The <strong>try:</strong> row covers the everyday moves — create a research flow, edit or audit the current canvas, drive your browser agent. The <strong>langchain patterns:</strong> row asks the Orchestrator to build a canonical pattern from scratch — router chain, smart (Code) branch, judge &amp; gate, map-reduce, multi-query RAG. Clicking a button fills the input but does <em>not</em> send; edit the request if you like, then press Send. Each langchain button mirrors a demo in the dropdown (§11), so if the model's live build comes out imperfect you have the guaranteed-correct version one click away to compare.</div>
+<div class="callout good"><b>Quick-fill example buttons</b>Two rows of one-click starters sit above the chat input. The <strong>try:</strong> row covers the everyday moves — create a research flow, edit or audit the current canvas, drive your browser agent. The <strong>langchain patterns:</strong> row asks the Orchestrator to build a canonical pattern from scratch — router chain, smart (Code) branch, judge &amp; gate, map-reduce, multi-query RAG. Clicking a button fills the input but does <em>not</em> send; edit the request if you like, then press Send. Each langchain button mirrors a demo in the dropdown (§12), so if the model's live build comes out imperfect you have the guaranteed-correct version one click away to compare.</div>
 
 <h2 id="brew">8. How a brew executes</h2>
 <ol>
@@ -327,7 +330,42 @@ python3 mcp_stdio_bridge.py 8795 -- npx -y @modelcontextprotocol/server-filesyst
 <div class="callout warn"><b>An app still needs a running engine</b>A single HTML file can't bundle Ollama. The exported app needs <strong>Ollama reachable</strong> (and <code>c0fi_server.py</code> if the flow uses Search, Read, Tool, or Watch nodes) — the ⚙ lets whoever runs it set the endpoint. For a non-technical recipient, either hand over a folder with the app + <code>c0fi_server.py</code> + a start script, or point the flow's engine endpoint at a hosted LLM API before building so the file runs anywhere.</div>
 <div class="callout good"><b>✨ Improve — the app can rebuild itself <span class="chip new">new in v5.7</span></b>Because an exported app carries the <em>whole</em> engine (just hidden), it can revise its own flow. Every app has an <strong>✨ Improve</strong> button in its header: describe what's wrong or what you'd change, click <strong>Revise &amp; re-download</strong>, and the local model edits the embedded flow and downloads an updated version of the app — open the new file to run it. It's the same feedback loop as the builder's Refine, closed inside a shipped app. So the workflow becomes: build an app, watch it run, notice a flaw (or get a critique from another tool), paste that in, and get back a better app — no builder required. Same caveat applies: the quality of the revision depends on the local model.</div>
 
-<h2 id="recipes">11. Recipes &amp; the demo library</h2>
+<h2 id="auto">11. Auto Brews — schedule flows to run automatically <span class="chip new">v6.7</span></h2>
+<p>Everything so far runs when you press <strong>⏻ Brew</strong>. <strong>Auto Brews</strong> lets a flow run <em>on its own</em>, on a timer — turn "I click Brew every morning" into "it drafts my digest while I make coffee." Open it from the <strong>⏰ Auto Brews</strong> button next to <em>Clear canvas</em>; the dialog is the list of every flow scheduled for automatic brewing.</p>
+
+<div class="callout"><b>How it runs — in the browser, tier 1</b>Auto Brews are driven by this page while it's open — there's no server or daemon. They fire <strong>while the C0fi tab stays open and the machine is awake</strong>; closing the tab or sleeping the laptop pauses them. That's the honest limit of the in-browser approach (a headless "runs with the tab closed" runner is future work). Deployed brews <strong>persist across reloads</strong>, so reopening the file brings your list back — each keeps the paused state you set.</div>
+
+<h3>Deploying a flow</h3>
+<ol>
+  <li><strong>Build</strong> the flow and press <strong>⏻ Brew</strong> once to confirm it works.</li>
+  <li>Open <strong>⏰ Auto Brews</strong> → under <em>Deploy the current canvas</em>, give it a <strong>name</strong>, pick a schedule — <strong>every N minutes</strong> or <strong>daily at HH:MM</strong> (24-hour) — and hit <strong>＋ Deploy</strong>.</li>
+  <li>It's now in the list and brews on schedule. The button shows <code>⏰ Auto Brews (active/total)</code> and turns green when any are live.</li>
+</ol>
+<p>Deploying captures a <strong>full snapshot</strong> of the canvas (nodes + wires), so the scheduled flow is frozen at deploy time — you can keep editing the canvas without disturbing it. A flow must have a <strong>⏻ Trigger</strong> to deploy (every brew starts from one). Deploy as many brews as you like; each runs independently on its own schedule.</p>
+
+<h3>Managing the list</h3>
+<table>
+  <tr><th>Control</th><th>What it does</th></tr>
+  <tr><td>▶ Run now</td><td>Fire this brew immediately — handy to confirm it works right after deploying.</td></tr>
+  <tr><td>⏸ Pause / ▶ Resume</td><td>Stop future runs without deleting. Paused brews stay in the list and keep their snapshot.</td></tr>
+  <tr><td>⤓ Auto-save: on/off</td><td>Toggle whether each run downloads its result as a <code>.txt</code> (see below).</td></tr>
+  <tr><td>⤓ Save .txt</td><td>Download the <em>last</em> captured result at any time.</td></tr>
+  <tr><td>✎ Update flow</td><td>Replace this brew's saved snapshot with your current canvas — after you improve the flow.</td></tr>
+  <tr><td>🗑 Delete</td><td>Remove the schedule and its snapshot. If it's brewing right now, Delete <strong>also stops the run</strong> for you.</td></tr>
+</table>
+<p>Each row shows the schedule, the next-run estimate (or <em>paused</em>), the last-run time and status, and a preview of the last result.</p>
+
+<h3>Auto-saving results to a file</h3>
+<p>Just like the manual <strong>⤓ save .txt</strong> on a node's output, an Auto Brew can save automatically. Tick <strong>⤓ Auto-save each run's result to a .txt file</strong> at deploy time (or toggle it per row). Each run then drops a timestamped file — e.g. <code>morning-digest-20260715-083000.txt</code> — into your Downloads. Auto-save captures your <strong>◎ Output node(s)</strong>; a flow with no Output has nothing to save (add one to capture a result). Every run also stores its result in the list regardless, so <strong>⤓ Save .txt</strong> is always available even with auto-save off. Because it's a browser, the file lands reliably only while the C0fi tab is <strong>focused</strong>.</p>
+
+<h3>How background runs stay out of your way</h3>
+<p>When a scheduled brew comes due, the engine <strong>snapshots your current canvas → swaps the scheduled flow in → brews it → restores your canvas</strong>. Whatever you had open comes back untouched, and a fresh Memory blackboard is used so a background run can't pollute your working state. It also <strong>won't hijack the canvas mid-edit</strong> — it skips a due run while you have a node drawer open or are dragging/wiring, and retries on the next tick.</p>
+
+<div class="callout good"><b>One brew at a time — no collisions</b>A single engine lock means brews never overlap. If the engine is busy when one is due, C0fi <strong>holds and retries</strong> rather than colliding: a manual <strong>Run now</strong> retries in 2 minutes (up to five times); a scheduled brew simply waits for the next 15-second tick (it stays due, so it doesn't lose its turn). The canvas <strong>⏻ Brew</strong> button is also refused while an Auto Brew holds the engine.</div>
+
+<div class="callout warn"><b>Keep scheduled flows fully automatic</b>A flow with a <strong>💬 Interaction</strong> node pauses waiting for a human — in a background run that just stalls the engine. Design Auto Brews to run end-to-end with no human turn: Trigger → work → Output.</div>
+
+<h2 id="recipes">12. Recipes &amp; the demo library</h2>
 <p>The demo dropdown holds twenty-one flows in four groups. Each is a working, correct reference you can load, run, and take apart — and each of the LangChain-pattern additions rebuilds a canonical chain from C0fi's own nodes, so the pattern is legible instead of hidden inside a framework.</p>
 
 <h3>① Retrieval &amp; RAG</h3>
@@ -370,7 +408,7 @@ python3 mcp_stdio_bridge.py 8795 -- npx -y @modelcontextprotocol/server-filesyst
 <h3>Local-stack bridge</h3>
 <p class="dim">Point HTTP nodes at services already on your machine — a Flask router, ERPNext endpoints, another Ollama model on a second port — and let Decision or Code Branch nodes route between them. C0fi becomes the conductor of your whole local rig.</p>
 
-<h2 id="trouble">12. Troubleshooting</h2>
+<h2 id="trouble">13. Troubleshooting</h2>
 <table>
   <tr><th>Symptom</th><th>Fix</th></tr>
   <tr><td>Red dot / "engine offline"</td><td>Ollama isn't reachable or is rejecting browser origins. Fastest fix: <code>OLLAMA_HOST=127.0.0.1:11435 OLLAMA_ORIGINS="*" ollama serve</code> and point Engine settings at <code>http://localhost:11435</code>. <code>start.sh</code> flags this at launch.</td></tr>
@@ -389,9 +427,12 @@ python3 mcp_stdio_bridge.py 8795 -- npx -y @modelcontextprotocol/server-filesyst
   <tr><td>Page Agent: "Hub is not connected"</td><td>Extension not installed/enabled, or no hub tab. Open <code>localhost:38401</code> in Chrome. A hub page opened without <code>?ws=PORT</code> is dormant and always shows No connection.</td></tr>
   <tr><td>Saved flow didn't come back after reboot</td><td>The flow library is per-browser <code>localStorage</code> — it survives closing the tab but is tied to that browser profile. For a portable copy, use Export flow (§10).</td></tr>
   <tr><td>Flow gone after switching browsers</td><td>Expected — My flows is local to one browser. Export to JSON to move a flow between machines or browsers.</td></tr>
+  <tr><td>Auto Brew never fires</td><td>The C0fi tab must stay open and the machine awake — Auto Brews run in the browser (§11). Also check the brew isn't paused, and that a <code>daily</code> time hasn't already passed today (it runs at the next occurrence).</td></tr>
+  <tr><td>Auto-save produced no file</td><td>Auto-save captures <strong>◎ Output</strong> node(s) — a flow with none has nothing to save. Browsers also only save reliably while the tab is focused; a background tab may hold the download until you return.</td></tr>
+  <tr><td>Auto Brew "is waiting" in the log</td><td>Expected — another brew holds the engine, so this one is holding to avoid a collision (§11). A manual Run now retries in 2 min; scheduled brews retry every 15 s.</td></tr>
 </table>
 
-<footer>C0fi v6.1 · single-file local orchestration engine · runs entirely against your own Ollama · your flows, your files, your machine. · c0fi.com</footer>
+<footer>C0fi v6.7 · single-file local orchestration engine · runs entirely against your own Ollama · your flows, your files, your machine. · c0fi.com</footer>
 
 </div>
 </body>
