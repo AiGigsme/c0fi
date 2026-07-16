@@ -2,7 +2,7 @@
 
 **Single-file visual workflow builder where your local LLM builds, wires, and runs the flows — n8n-style canvas, 100% on your machine via Ollama.**
 
-![C0fi — the "Verifier bench + repair loop" demo on the canvas, with the C0fi Orchestrator panel that builds and edits flows from plain language](docs/screenshot.png)
+![C0fi — the "Self-consistency + verify (deterministic rule-check)" demo on the canvas, with the C0fi Orchestrator panel that builds and edits flows from plain language](docs/screenshot.png)
 
 C0fi is in the spirit of n8n, rebuilt around one inversion — the whole canvas is a single loop the model lives inside: **decide → orchestrate → create → build → run → learn**. Via [Ollama](https://ollama.com), the model **decides** (Decision/Critic nodes), **orchestrates** (a chat panel that sees the whole canvas and rewires it), **creates** (describe a flow in plain language and it builds the nodes and wires), and **builds** (edits, extends, and re-runs flows mid-conversation, including ones you drew by hand) — then you **run** the flow and **learn** from what comes back in the Brew Log, feeding the next pass.
 
@@ -54,9 +54,9 @@ See the [user guide](c0fi-user-guide-v6.7.html) §2 for the CORS details, the si
 
 Drag them from the palette, or just describe what you want in the Orchestrator and let C0fi wire it.
 
-![A complete flow, end to end: the "Verifier bench + repair loop" demo — three independent judges, a count-based barrier gate, a unanimous-approval check, and a repair path, ~20 nodes running entirely on local models](docs/full-flow.png)
+![A complete flow, end to end: the "Self-consistency + verify (deterministic rule-check)" demo — three independent samples reason over a logic puzzle, a majority vote picks the answer, then a deterministic JS rule-checker either accepts it or routes the wrong majority to a Reject node, ~21 nodes running entirely on local models](docs/full-flow.png)
 
-*Above: one of the 21 built-in demos — three independent judges each apply the same four tests to a draft, a Count+Branch join waits until all three are in, and only a unanimous GOOD clears the gate; anything flagged routes to a repair specialist instead of being trusted.*
+*Above: one of the 21 built-in demos — three samples each reason step-by-step over the same puzzle and cast a vote, a majority tally picks the winner, then a deterministic "Check the rules" node tests the winning answer against the puzzle's actual rules in plain JS; only a rule-valid answer clears the Code Branch, and a wrong majority is routed to a Reject-and-explain node instead of being trusted. Voting alone can launder a systematic model error into false confidence — the verifier checks the answer, not the model.*
 
 ## Auto Brews — flows that run themselves
 
