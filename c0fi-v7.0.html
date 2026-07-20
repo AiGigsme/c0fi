@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>C0fi v6.8 — Local Orchestration Engine · c0fi.com</title>
+<title>C0fi v7.0 — Local Orchestration Engine · c0fi.com</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -79,6 +79,18 @@ header .spacer{flex:1}
 #connDot{width:9px;height:9px;border-radius:50%;background:var(--cherry);display:inline-block;margin-right:6px}
 #connDot.ok{background:var(--leaf)}
 #connLabel{color:var(--sugar);font-size:11px}
+/* engine (py) status — same language as the Ollama dot, one click away from the launch command */
+#srvDot{width:9px;height:9px;border-radius:50%;background:var(--cherry);display:inline-block;margin-right:6px}
+#srvDot.ok{background:var(--leaf)}
+#srvDot.unknown{background:var(--sugar)}
+#srvWrap{cursor:pointer}
+#srvLabel{color:var(--sugar);font-size:11px;border-bottom:1px dotted var(--wire)}
+/* orchestrator "working" spinner — the model can think for many seconds with nothing on screen */
+.spinner{display:inline-block;width:11px;height:11px;margin-right:7px;vertical-align:-1px;
+  border:2px solid var(--wire);border-top-color:var(--crema);border-radius:50%;animation:c0spin .7s linear infinite}
+@keyframes c0spin{to{transform:rotate(360deg)}}
+.msg .elapsed{color:var(--steam);font-size:11px}
+@media (prefers-reduced-motion:reduce){ .spinner{animation-duration:2.4s} }
 
 /* ---------- palette ---------- */
 #palette{grid-area:palette;background:var(--bean);border-right:1px solid var(--wire);padding:12px;overflow-y:auto}
@@ -246,11 +258,12 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
 <div id="app">
   <header>
     <h1>C<span class="z0">0</span>fi<span>.</span></h1>
-    <span class="tag">local orchestration engine · v6.8</span>
+    <span class="tag">local orchestration engine · v7.0</span>
     <span class="tag">c0fi.com</span>
     <span class="tag" id="modelTag">no model</span>
     <div class="spacer"></div>
     <span><span id="connDot"></span><span id="connLabel">checking engine…</span></span>
+    <span id="srvWrap" title="Local engine (c0fi_server.py) — click for the launch command"><span id="srvDot" class="unknown"></span><span id="srvLabel">checking server…</span></span>
     <button id="settingsBtn">Engine settings</button>
     <button id="exportBtn">Export flow</button>
     <button id="importBtn">Import flow</button>
@@ -276,6 +289,7 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
     <div class="pal-node" data-type="chat"><span class="chip">live</span><b>💬 Interaction</b><i>Pauses the brew to chat with you, then continues.</i></div>
     <div class="pal-node" data-type="gather"><span class="chip">join</span><b>⇉ Gather</b><i>Waits for every wire into it, then outputs them as one array.</i></div>
     <div class="pal-node" data-type="output"><span class="chip">end</span><b>◎ Output</b><i>Collects the finished cup.</i></div>
+    <div class="pal-node" data-type="escalate"><span class="chip">end</span><b>⚑ Escalate</b><i>Hands the run to a human, with the reason.</i></div>
     <div class="hint">Drag onto the canvas, or just ask C0fi to build the flow for you in the panel on the right.<br><br>
     Connect: click an <code>out</code> port, then an <code>in</code> port. Click a wire to cut it. <kbd>Del</kbd> removes a selected node.</div>
   </aside>
@@ -440,12 +454,27 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
   <input id="setTemp" type="number" min="0" max="2" step="0.1" value="0.4">
   <label>Max loop iterations (safety valve)</label>
   <input id="setMaxLoops" type="number" min="1" max="100" value="8">
+  <label>Local engine — c0fi_server.py (web search, page reading, MCP, RAG)</label>
+  <input id="setProxy" value="http://localhost:8790">
   <div class="hint">If the connection dot stays red, allow browser origins in Ollama:<br>
   <code>OLLAMA_ORIGINS="*" ollama serve</code><br>
   or <code>launchctl setenv OLLAMA_ORIGINS "*"</code> then restart Ollama.</div>
   <div class="row" style="display:flex;gap:8px;margin-top:14px">
     <button id="setTest">Test connection</button>
     <button id="setSave" class="primary">Save</button>
+  </div>
+</dialog>
+<dialog id="srvDlg">
+  <h3 style="margin:0 0 2px">Local engine — <code>c0fi_server.py</code></h3>
+  <div class="sub" style="margin-bottom:12px">The zero-dependency Python engine that gives C0fi real web search, clean page reading, an MCP tool surface, and RAG over your <code>knowledge/</code> folder. It is <b>optional</b> — C0fi runs on Ollama alone.</div>
+  <div id="srvState" style="margin-bottom:12px"></div>
+  <div style="font-weight:600;margin-bottom:6px">Start it in a terminal:</div>
+  <pre style="background:var(--bean);border:1px solid var(--wire);border-radius:8px;padding:10px 12px;overflow-x:auto;margin:0"><code id="srvCmd"></code></pre>
+  <div class="sub" style="margin-top:8px">Or use <code>./start.sh</code>, which starts the engine <em>and</em> opens the newest app version. Change the port under <b>Engine settings → Local engine</b>.</div>
+  <div class="row" style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+    <button id="srvCopy">⧉ Copy</button>
+    <button id="srvRecheck">↻ Re-check</button>
+    <button id="srvClose" class="primary">Close</button>
   </div>
 </dialog>
 <dialog id="autoDlg">
@@ -474,6 +503,8 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
     </div>
     <label style="display:flex;align-items:center;gap:8px;width:auto;margin-top:10px;cursor:pointer">
       <input type="checkbox" id="abAutoSave" style="width:auto"> ⤓ Auto-save each run's result to a .txt file (downloads folder)</label>
+    <label style="display:flex;align-items:center;gap:8px;width:auto;margin-top:8px;cursor:pointer">
+      <input type="checkbox" id="abPersistMem" style="width:auto"> ▤ Remember memory between runs — this brew keeps its own blackboard (critic ledgers, seen-lists, lessons) instead of starting blank. Still isolated from your canvas.</label>
     <div class="sub" style="margin-top:8px">Tip: keep scheduled flows fully automatic — a flow with an Interaction node will pause waiting for a human and stall the background run. Auto-save captures your ◎ Output node(s); the browser may only save while this tab is focused.</div>
   </div>
   <div id="autoList"></div>
@@ -481,14 +512,14 @@ kbd{border:1px solid var(--wire);border-radius:4px;padding:0 4px;font-size:10px;
 </dialog>
 <script>
 /* =========================================================
-   C0fi v6.8 — everything on the canvas is inside the loop:
+   C0fi v7.0 — everything on the canvas is inside the loop:
    decide → orchestrate → create → build → run → learn.
    ========================================================= */
 const $ = s => document.querySelector(s);
 const uid = () => 'n' + Math.random().toString(36).slice(2,8);
 
 const state = {
-  cfg: { url:'http://localhost:11434', model:'', verifier:'', model3:'', model4:'', temp:0.4, maxLoops:8 },
+  cfg: { url:'http://localhost:11434', model:'', verifier:'', model3:'', model4:'', temp:0.4, maxLoops:8, proxy:'http://localhost:8790' },
   nodes: {},            // id -> node
   wires: [],            // {from, fromPort, to}
   memory: {},           // shared blackboard
@@ -497,6 +528,7 @@ const state = {
   running: false,
   selected: null,
   loops: 0,
+  escalations: [],      // v7.0: ⚑ Escalate nodes reached this brew — a run with any of these is not "ok"
   autoTimer: null,      // v6.4 Auto Brews: interval that fires scheduled flows while this tab is open
   autoBusy: false,      // v6.5 mutex: true while an Auto Brew owns the engine (swap → brew → restore)
   autoRunning: null     // v6.7: id of the Auto Brew whose run currently holds the engine (else null)
@@ -521,8 +553,8 @@ const NODE_DEFS = {
     fields:[['server','input','MCP server URL'],['tool','input','Tool name (leave empty to list tools)'],['args','textarea','Arguments (JSON; {{input}}/{{memory.key}} are JSON-escaped)'],['cleanup','input','On failure, call this tool with {} (e.g. stop_task) — prevents orphaned tasks']] },
   watch:{ icon:'⟳', name:'Watch Task', outs:['out'], cfg:{ server:'http://localhost:8790/mcp', startTool:'execute_task', startArgs:'{"task":"{{input}}"}', statusTool:'get_status', stopTool:'stop_task', pollSecs:'5', maxMins:'10' },
     fields:[['server','input','MCP server URL'],['startTool','input','Tool that starts the job'],['startArgs','textarea','Start arguments (JSON; {{input}}/{{memory.key}} JSON-escaped)'],['statusTool','input','Tool polled for progress/result'],['stopTool','input','Tool called to abort on timeout/stop (blank = none)'],['pollSecs','input','Seconds between polls'],['maxMins','input','Give up after this many minutes']] },
-  http:{ icon:'⇄', name:'HTTP Request', outs:['out'], cfg:{ method:'GET', url:'https://api.github.com/zen', body:'' },
-    fields:[['method','input','Method'],['url','input','URL ({{input}} ok)'],['body','textarea','Body (POST/PUT)']] },
+  http:{ icon:'⇄', name:'HTTP Request', outs:['out'], cfg:{ method:'GET', url:'https://api.github.com/zen', body:'', onError:'fail' },
+    fields:[['method','input','Method'],['url','input','URL ({{input}} ok)'],['body','textarea','Body (POST/PUT)'],['onError','input','On non-2xx: fail (stop the branch) | pass (send the error body downstream)']] },
   code:{ icon:'ƒ', name:'Transform', outs:['out'], cfg:{ js:'// input, memory available. Return the new payload.\nreturn String(input).toUpperCase();' },
     fields:[['js','textarea','JavaScript']] },
   memory:{ icon:'▤', name:'Memory', outs:['out'], cfg:{ mode:'write', key:'notes' },
@@ -531,6 +563,8 @@ const NODE_DEFS = {
     fields:[['goal','textarea','Quality bar the model enforces'],['maxRounds','input','Max revision rounds'],['model','input','Model override for rewrites (verdicts use the Verifier)'],['ledger','input','Constraint ledger memory key (flags persist across brews)']] },
   output:{ icon:'◎', name:'Output', outs:[], cfg:{ label:'result' },
     fields:[['label','input','Label']] },
+  escalate:{ icon:'⚑', name:'Escalate', outs:[], cfg:{ reason:'The flow could not finish this on its own.', severity:'blocked' },
+    fields:[['reason','textarea','Why a human is needed ({{input}}/{{memory.key}} ok) — be specific about what was tried'],['severity','input','Severity: blocked | needs-review | fyi']] },
   gather:{ icon:'⇉', name:'Gather', outs:['out'], cfg:{},
     fields:[] },
   chat:{ icon:'💬', name:'Interaction', outs:['out'], cfg:{ greeting:'Hi! Ask me anything.', endWord:'bye' },
@@ -1013,6 +1047,12 @@ async function ollama(messages, {json=false, temp, model, maxTokens, onToken, si
         if(piece){ full+=piece; onToken?.(full); }
       }
     }
+    // Flush: Ollama terminates its last chunk with a newline today, so `buf` is normally empty
+    // here — but if that ever changes (or a proxy re-chunks the stream) the final line would be
+    // silently dropped and the JSON would come back truncated with no error. Cheap to be safe.
+    buf += decoder.decode();
+    const last=buf.trim();
+    if(last){ try{ const o=JSON.parse(last); const p=o.message?.content; if(p){ full+=p; onToken?.(full); } }catch{} }
     return full;
   }catch(e){
     if(e.name==='AbortError' || sig?.aborted) throw new Error('stopped by user');
@@ -1071,7 +1111,7 @@ async function brew(){
   if(!state.cfg.model && !(await testConn(true))){ log('err','No engine. Open settings and connect to Ollama.'); showTab('run'); return; }
   const triggers = Object.values(state.nodes).filter(n=>n.type==='trigger');
   if(!triggers.length){ log('err','No Trigger node on the canvas — every brew starts from one. Drag ⏻ Trigger in from Ingredients (top of the left panel), or just tell C0fi in the Orchestrator: "add a trigger".'); showTab('run'); return; }
-  state.running=true; stopFlag=false; brewAbort=new AbortController(); state.loops=0;
+  state.running=true; stopFlag=false; brewAbort=new AbortController(); state.loops=0; state.escalations=[];
   $('#brewBtn').textContent='☕ Brewing…'; $('#brewBtn').classList.add('brewing');
   Object.values(state.nodes).forEach(n=>{ n.status=''; n.out=null; });
   state.wires.forEach(w=>w.hot=false); refresh(); showTab('run');
@@ -1079,7 +1119,8 @@ async function brew(){
   try{
     const wave={gather:{}};   // one propagation wave; Gather nodes accumulate per wave (see runNode)
     for(const t of triggers) await runNode(t.id, null, new Set(), wave);
-    log('ok','Brew finished.');
+    if(state.escalations.length) log('err','Brew finished with '+state.escalations.length+' escalation(s) — a human is needed.', escalationReport(), {name:'escalations'});
+    else log('ok','Brew finished.');
   }catch(e){ log('err','Brew stopped: '+e.message); }
   state.running=false; brewAbort=null; endChatInput(); hideCanvasChat();
   $('#brewBtn').textContent='⏻ Brew'; $('#brewBtn').classList.remove('brewing');
@@ -1153,6 +1194,31 @@ function collectFlowResult(){
   const pick=terms.length?terms:Object.values(state.nodes).filter(n=>n.out!=null);
   return pick.map(n=>n.name+':\n'+str(n.out)).join('\n\n');
 }
+// Deep-copy the blackboard for persistence, with a size guard: localStorage is ~5MB for the WHOLE
+// Auto Brew list, and an append-mode memory key grows every single run. Oversized keys are clamped
+// (newest tail kept) rather than silently blowing the quota and losing the entire list on write.
+const AB_MEM_KEY_MAX=200000, AB_MEM_TOTAL_MAX=1000000;
+function snapshotMemory(){
+  const out={}; let total=0;
+  for(const k of Object.keys(state.memory||{})){
+    let v=state.memory[k];
+    if(typeof v==='string' && v.length>AB_MEM_KEY_MAX){
+      v='…[older entries dropped]…\n'+v.slice(-AB_MEM_KEY_MAX);
+      log('run','Auto Brew memory key "'+k+'" exceeded '+AB_MEM_KEY_MAX+' chars — kept the newest portion.');
+    }
+    const sz=(typeof v==='string'?v.length:str(v).length);
+    if(total+sz>AB_MEM_TOTAL_MAX){ log('err','Auto Brew memory hit the '+AB_MEM_TOTAL_MAX+'-char cap — key "'+k+'" and any after it were not carried forward.'); break; }
+    total+=sz; out[k]=v;
+  }
+  return out;
+}
+// Human-readable escalation block. Appended to auto-saved .txt files and stored on the Auto Brew
+// entry, so the morning after an unattended run you read what it couldn't do, not just what it did.
+function escalationReport(){
+  if(!state.escalations.length) return '';
+  return '⚑ ESCALATED TO A HUMAN ('+state.escalations.length+')\n'+state.escalations.map((e,i)=>
+    (i+1)+'. ['+e.severity+'] '+e.node+'\n   why: '+e.reason+(e.context?'\n   context: '+trunc(e.context,600):'')).join('\n');
+}
 function abStamp(){ const d=new Date(), p=x=>String(x).padStart(2,'0');
   return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds()); }
 function downloadText(fname, text){
@@ -1177,14 +1243,25 @@ async function runAutoBrew(idOrEntry, manual, tries){
   const backCanvas=snapshotCanvas(), backMem=state.memory, backSel=state.selected;
   let okRun=false, resFields=null;           // only the result fields get persisted, via patchAutoBrew
   try{
-    state.memory={};                         // fresh blackboard so a background run can't pollute your canvas memory
+    // v7.0 — the blackboard is still ISOLATED from your canvas (a background run must never
+    // pollute the memory you have open), but it is no longer thrown away between runs when the
+    // brew opts in. persistMem carries this entry's OWN blackboard forward, so a scheduled flow
+    // can accumulate across nights — a critic ledger that keeps growing, a "already seen" list,
+    // a lessons-learned key. Without it every scheduled run is a fresh one-shot that can't learn.
+    state.memory = e.persistMem ? JSON.parse(JSON.stringify(e.memory||{})) : {};
     loadSnapshot(e.flow);
     log('run','⏰ Auto Brew "'+e.name+'" starting'+(manual?' (Run now)':'')+' — your canvas will restore when it finishes.');
     await brew();
     const result=collectFlowResult();        // capture BEFORE restoring your canvas
-    resFields={ lastRun:Date.now(), lastStatus:'ok', lastResult:str(result).slice(0,50000) }; okRun=true;
+    const escText=escalationReport(), escN=state.escalations.length;
+    // a run that hit an ⚑ Escalate node did NOT succeed, even though nothing threw
+    resFields={ lastRun:Date.now(), lastStatus: escN?('escalated: '+escN+' item(s)'):'ok',
+                lastResult:str(result).slice(0,50000), lastEscalations:escText.slice(0,20000) };
+    okRun = !escN;
+    if(e.persistMem) resFields.memory=snapshotMemory();   // carry this brew's blackboard to the next run
     if(e.autoSave){
-      if(result){ if(downloadText((e.name||'auto-brew').replace(/\s+/g,'-').toLowerCase()+'-'+abStamp()+'.txt', result))
+      const body = escText ? (escText+'\n\n———\n\n'+str(result)) : result;
+      if(body){ if(downloadText((e.name||'auto-brew').replace(/\s+/g,'-').toLowerCase()+'-'+abStamp()+'.txt', body))
         log('ok','⤓ Saved "'+e.name+'" result to a .txt file (check your Downloads).'); }
       else log('run','"'+e.name+'" produced no Output — nothing to auto-save. Add a ◎ Output node to capture a result.');
     }
@@ -1239,11 +1316,13 @@ function renderAutoList(){
     <div class="ab-row${e.paused?' paused':''}" data-id="${esc(e.id)}">
       <div class="ab-top"><span class="ab-dot"></span><span class="ab-name">${esc(e.name)}</span>
         <span class="sub">${e.flow.nodes.length} nodes</span></div>
-      <div class="ab-meta">${esc(abDesc(e))} · ${e.paused?'paused':esc(abWhen(e))} · auto-save ${e.autoSave?'on':'off'}<br>last run: ${esc(abTimeStr(e.lastRun))}${e.lastStatus?' · '+esc(e.lastStatus):''}${e.lastResult?'<br>last result: '+esc(trunc(e.lastResult,90)):''}</div>
+      <div class="ab-meta">${esc(abDesc(e))} · ${e.paused?'paused':esc(abWhen(e))} · auto-save ${e.autoSave?'on':'off'} · memory ${e.persistMem?'kept ('+Object.keys(e.memory||{}).length+' key'+(Object.keys(e.memory||{}).length===1?'':'s')+')':'fresh each run'}<br>last run: ${esc(abTimeStr(e.lastRun))}${e.lastStatus?' · '+esc(e.lastStatus):''}${e.lastEscalations?'<br><span style="color:var(--cherry)">⚑ '+esc(trunc(e.lastEscalations.split('\n').slice(1).join(' ').trim(),110))+'</span>':''}${e.lastResult?'<br>last result: '+esc(trunc(e.lastResult,90)):''}</div>
       <div class="ab-btns">
         <button class="mini" data-act="run">▶ Run now</button>
         <button class="mini" data-act="toggle">${e.paused?'▶ Resume':'⏸ Pause'}</button>
         <button class="mini" data-act="autosave">${e.autoSave?'⤓ Auto-save: on':'⤓ Auto-save: off'}</button>
+        <button class="mini" data-act="mem">▤ Memory: ${e.persistMem?'kept':'fresh'}</button>
+        <button class="mini" data-act="clearmem"${e.persistMem&&Object.keys(e.memory||{}).length?'':' disabled'}>⌫ Clear memory</button>
         <button class="mini" data-act="save"${e.lastResult?'':' disabled'}>⤓ Save .txt</button>
         <button class="mini" data-act="update">✎ Update flow</button>
         <button class="mini" data-act="del">🗑 Delete</button>
@@ -1254,6 +1333,8 @@ function renderAutoList(){
     row.querySelector('[data-act="run"]').onclick=()=>runAutoBrew(id, true);
     row.querySelector('[data-act="toggle"]').onclick=()=>abToggle(id);
     row.querySelector('[data-act="autosave"]').onclick=()=>abToggleSave(id);
+    row.querySelector('[data-act="mem"]').onclick=()=>abToggleMem(id);
+    row.querySelector('[data-act="clearmem"]').onclick=()=>abClearMem(id);
     row.querySelector('[data-act="save"]').onclick=()=>abSaveTxt(id);
     row.querySelector('[data-act="update"]').onclick=()=>abUpdateFlow(id);
     row.querySelector('[data-act="del"]').onclick=()=>abDelete(id);
@@ -1263,9 +1344,20 @@ function abToggleSave(id){ const list=autoBrews(); const e=list.find(x=>x.id===i
   e.autoSave=!e.autoSave; writeAutoBrews(list); renderAutoList();
   log('ok','Auto Brew "'+e.name+'" — auto-save '+(e.autoSave?'on: each run downloads a .txt.':'off.')); }
 function abSaveTxt(id){ const list=autoBrews(); const e=list.find(x=>x.id===id); if(!e) return;
-  if(!e.lastResult){ alert('"'+e.name+'" has no captured result yet — Run now first.'); return; }
-  if(downloadText((e.name||'auto-brew').replace(/\s+/g,'-').toLowerCase()+'-'+abStamp()+'.txt', e.lastResult))
+  if(!e.lastResult && !e.lastEscalations){ alert('"'+e.name+'" has no captured result yet — Run now first.'); return; }
+  const body = e.lastEscalations ? (e.lastEscalations+'\n\n———\n\n'+(e.lastResult||'')) : e.lastResult;
+  if(downloadText((e.name||'auto-brew').replace(/\s+/g,'-').toLowerCase()+'-'+abStamp()+'.txt', body))
     log('ok','⤓ Saved "'+e.name+'" last result to a .txt file.'); }
+function abToggleMem(id){ const list=autoBrews(); const e=list.find(x=>x.id===id); if(!e) return;
+  e.persistMem=!e.persistMem; if(!e.persistMem) e.memory={};
+  writeAutoBrews(list); renderAutoList();
+  log('ok','Auto Brew "'+e.name+'" — memory '+(e.persistMem?'kept between runs: its blackboard now carries forward (ledgers, seen-lists, lessons).':'reset to fresh each run; its stored blackboard was cleared.')); }
+function abClearMem(id){ const list=autoBrews(); const e=list.find(x=>x.id===id); if(!e) return;
+  const n=Object.keys(e.memory||{}).length;
+  if(!n) return;
+  if(!confirm('Clear the remembered memory for "'+e.name+'"? '+n+' key(s) will be forgotten — the next run starts from a blank blackboard.')) return;
+  e.memory={}; writeAutoBrews(list); renderAutoList();
+  log('ok','Cleared '+n+' remembered memory key(s) for "'+e.name+'".'); }
 function abToggle(id){ const list=autoBrews(); const e=list.find(x=>x.id===id); if(!e) return;
   e.paused=!e.paused; writeAutoBrews(list); renderAutoList(); updateAutoBtn(); ensureAutoTimer();
   log('ok','Auto Brew "'+e.name+'" '+(e.paused?'paused':'resumed')+'.'); }
@@ -1290,9 +1382,12 @@ $('#abDeploy').onclick=()=>{
   const name=($('#abName').value||'').trim() || ('Auto Brew '+(autoBrews().length+1));
   const entry={ id:'ab'+Math.random().toString(36).slice(2,9), name, mode,
     everyMins:($('#abEvery').value||'30').trim(), atTime:($('#abAt').value||'08:00').trim(), days,
-    paused:false, autoSave:$('#abAutoSave').checked, lastRun:0, lastStatus:'', lastResult:'', flow:snapshotCanvas() };
+    paused:false, autoSave:$('#abAutoSave').checked, persistMem:$('#abPersistMem').checked,
+    memory:$('#abPersistMem').checked?snapshotMemory():{},   // seed from the canvas blackboard you just confirmed
+    lastRun:0, lastStatus:'', lastResult:'', lastEscalations:'', flow:snapshotCanvas() };
   const list=autoBrews(); list.push(entry); writeAutoBrews(list);
-  $('#abName').value=''; $('#abAutoSave').checked=false; renderAutoList(); updateAutoBtn(); ensureAutoTimer();
+  $('#abName').value=''; $('#abAutoSave').checked=false; $('#abPersistMem').checked=false;
+  renderAutoList(); updateAutoBtn(); ensureAutoTimer();
   log('ok','Deployed "'+name+'" to Auto Brews ('+abDesc(entry)+'). It will brew automatically while this tab stays open.');
 };
 $('#autoBrewBtn').onclick=()=>{ syncAbMode(); renderAutoList(); updateAutoBtn(); $('#autoDlg').showModal(); };
@@ -1582,6 +1677,13 @@ async function runNode(id, input, seen, wave){
         if(opt.method!=='GET'&&opt.method!=='HEAD'){ opt.headers={'Content-Type':'application/json'}; opt.body=interp(n.cfg.body,input); }
         log('run', n.name+' → '+opt.method+' '+url);
         const r=await fetch(url,opt); const txt=await r.text();
+        // v7.0 — a non-2xx used to flow downstream as if it had succeeded: a 404 page or a 500
+        // error body became the payload the next node reasoned over, and the brew reported ok.
+        // That is the "false done" failure mode. Fail loudly by default; onError:'pass' opts back
+        // in for flows that deliberately inspect error responses.
+        if(!r.ok && (n.cfg.onError||'fail')!=='pass')
+          throw new Error(n.name+': HTTP '+r.status+' '+(r.statusText||'')+' from '+url+' — '+trunc(txt.trim()||'(empty body)',200)+'  [set onError to "pass" on this node to treat error responses as data]');
+        if(!r.ok) log('err', n.name+' got HTTP '+r.status+' — passing the error body downstream (onError: pass)', trunc(txt,500));
         try{ out=JSON.parse(txt); }catch{ out=txt; }
         break; }
       case 'code': {
@@ -1645,6 +1747,17 @@ async function runNode(id, input, seen, wave){
         out=draft; break; }
       case 'output': {
         out=input; log('ok','◎ '+(n.cfg.label||'result')+':', str(input), {name:(n.cfg.label||'result').replace(/\s+/g,'-')}); break; }
+      case 'escalate': {
+        // Terminal sink for "I couldn't do this." A brew that reaches one has NOT succeeded, even
+        // though nothing threw — that distinction is what makes an unattended run trustworthy.
+        // Recorded on state.escalations so an Auto Brew can report it instead of silently
+        // filing a half-done result as ok. See collectEscalations / runAutoBrew.
+        const why=interp(n.cfg.reason||'', input).trim() || '(no reason given)';
+        const sev=(n.cfg.severity||'blocked').trim();
+        state.escalations.push({ node:n.name, severity:sev, reason:why, context:trunc(str(input??''),2000) });
+        out=input;
+        log('err','⚑ ESCALATED ['+sev+'] '+n.name+' — '+why, str(input), {name:'escalation-'+n.name.replace(/\s+/g,'-')});
+        break; }
       case 'chat': {
         // Human-gated turn: a person is about to act, so reset the automated-loop safety budget —
         // this is what lets a chat loop run indefinitely while a runaway auto-loop (one that never
@@ -1692,11 +1805,12 @@ Node types you may create:
 - read     cfg:{url, reader, proxy}      (fetch a URL as clean readable text; reader "proxy" = local server /api/read, "jina" = r.jina.ai; url defaults to {{input}}, first URL in input is used)
 - tool     cfg:{server, tool, args, cleanup}  (call a tool on an MCP server; optional cleanup names a tool to call with {} if this call fails, e.g. stop_task for browser agents; args is a JSON object string, {{input}}/{{memory.key}} inside it are JSON-escaped automatically; leave tool empty to list the server's tools. Known tool catalogs appear in CURRENT CANVAS as toolServers — prefer those exact tool names.)
 - watch    cfg:{server, startTool, startArgs, statusTool, stopTool, pollSecs, maxMins}  (fire-and-monitor for long-running MCP tools like browser agents: starts the job, polls statusTool for live progress, collects the real result, and calls stopTool automatically on timeout or user stop)
-- http     cfg:{method, url, body}
+- http     cfg:{method, url, body, onError}  (onError "fail" (default) stops the branch on any non-2xx response; "pass" sends the error body downstream for flows that deliberately inspect failures)
 - code     cfg:{js}                      (js body of a function(input, memory); must return the new payload)
 - memory   cfg:{mode, key}               (mode: write|read|append)
 - critic   cfg:{goal, maxRounds, ledger}  (review-revise loop until the text passes the bar; every flagged phrase is written to memory[ledger] as a standing constraint — a deterministic screen blocks literal reuse, the verifier re-checks all constraints each round, and the maker must satisfy them in rewrites. The ledger persists across brews and can be read/edited via a Memory node.)
 - output   cfg:{label}
+- escalate cfg:{reason, severity}   (TERMINAL: the honest "I couldn't do this" exit. Wire the failure side of a verification branch here instead of letting a half-done result reach an output. reason should say what was tried and what a human must decide ({{input}}/{{memory.key}} ok); severity is blocked|needs-review|fyi. A scheduled run that reaches one is reported as escalated rather than ok, and its reason lands in the saved .txt. Give any flow that runs unattended at least one.)
 - gather   cfg:{}                        (JOIN/BARRIER: waits until EVERY wire into it has delivered, then outputs all inputs as one JSON array. Wire several parallel producers into it to merge their results without a manual counter. Only wire ALWAYS-active producers in — a Decision branch that doesn't fire leaves it waiting forever. For counting/aggregating instead, the Count+Code-Branch or For-Each+Memory patterns still work.)
 - chat     cfg:{greeting, endWord}   (INTERACTIVE: pauses the brew and waits for the user to type a reply, then sends their reply out its port. On the first turn it shows the greeting; on later turns it shows whatever arrives on its in-port (e.g. the previous answer). Wire it in a loop — chat then do something with the reply then back to chat — to make a multi-turn chatbot. Typing the endWord (default bye) ends the chat. Great with kb_search for a chat-with-your-docs bot.)
 
@@ -1707,11 +1821,16 @@ Respond ONLY with JSON, no prose, in this shape:
    {"op":"connect","from":"a","to":"b","fromPort":"out"},
    {"op":"set_config","id":"<existing node id>","cfg":{"prompt":"..."},"name":"optional new name"},
    {"op":"delete_node","id":"<existing node id>"},
+   {"op":"clear_canvas"},
    {"op":"run"}
  ]}
 
 Rules:
 - "ref" is your temporary handle for nodes you create this turn; use refs OR existing ids in connect.
+- CURRENT CANVAS ALREADY HAS A FLOW? Decide which the human meant, and say which you chose in "say":
+  (a) they described a WHOLE NEW / DIFFERENT flow ("build a flow that…", "now make one that…") -> emit {"op":"clear_canvas"} FIRST, then build fresh. Do not bolt a second flow onto an unrelated one — two disconnected graphs on one canvas both fire on Brew and the wiring cannot be inferred.
+  (b) they asked to CHANGE, EXTEND or FIX what's there ("add a step", "make it also…", "that's wrong") -> never clear; edit with set_config / add_node / connect / delete_node against the existing ids.
+  clear_canvas is undoable (⌘Z) but destructive-looking — only use it for (a), and never when the canvas is already empty.
 - When building search or read nodes, default source/reader to "proxy" (the local C0fi engine, http://localhost:8790) — ddg-api and jina are thin fallbacks. The engine auto-falls back between sources at run time if one comes up dry.
 - Build the WHOLE flow the user asked for in one response: every node AND every wire. Always start with a trigger wired into step one. Typical research/article flow (ALWAYS include the read step — an llm cannot read a URL, only text): trigger -> search -> llm(pick the single best URL, output only the URL) -> read(the page) -> llm(write from the page text, cite it). Never wire search results straight into a writer; without a read node the writer only sees links and will say it has no information. For posting to a real website use a watch node (server http://localhost:8794/mcp, startTool execute_task, stopTool stop_task); never invent a server or tool name, and a tool server must be a full http URL.
 - CRITICAL: every llm/decision/critic node that works on the previous node's output MUST include the token {{input}} in its prompt/question — that token is what injects the incoming data. A prompt that says "from the search results, pick..." but omits {{input}} receives NOTHING and will reply "I don't see any results". Put {{input}} (and {{memory.key}} if needed) literally in every node's text.
@@ -1734,11 +1853,26 @@ function chatMsg(cls, who, text){
   d.innerHTML=`<span class="who">${who}</span>`+esc(text);
   $('#chatLog').appendChild(d); $('#chatLog').scrollTop=1e9; return d;
 }
+/* A local model can chew on an orchestration prompt for 30s+ with nothing on screen but "…",
+   which is indistinguishable from a hang. Show a live spinner AND an elapsed counter — the
+   number is what actually tells you it's alive and roughly how much longer to wait. */
+function thinkingMsg(label){
+  const d=chatMsg('c0fi','c0fi','');
+  const t0=Date.now();
+  const paint=()=>{ d.innerHTML='<span class="who">c0fi</span><span class="spinner"></span>'+esc(label)+
+    ' <span class="elapsed">'+Math.round((Date.now()-t0)/1000)+'s</span>'; };
+  paint();
+  d.__timer=setInterval(paint, 1000);
+  $('#chatLog').scrollTop=1e9;
+  return d;
+}
+// always call before overwriting a thinking bubble, or its timer keeps repainting over the answer
+function stopThinking(d){ if(d&&d.__timer){ clearInterval(d.__timer); d.__timer=null; } return d; }
 async function sendToC0fi(){
   const inp=$('#chatInput'); const text=inp.value.trim(); if(!text) return;
   inp.value=''; chatMsg('user','you',text);
   if(!state.cfg.model && !(await testConn(true))){ chatMsg('c0fi','c0fi','I can\u2019t reach the local engine. Open Engine settings — you may need OLLAMA_ORIGINS="*".'); return; }
-  const thinking=chatMsg('c0fi','c0fi','…');
+  const thinking=thinkingMsg('building the flow…');
   state.chat.push({role:'user', content:text});
   try{
     const raw=await ollama([
@@ -1752,9 +1886,9 @@ async function sendToC0fi(){
       const sayMatch=raw.match(/"say"\s*:\s*"((?:[^"\\]|\\.)*)"/);
       plan={say:(sayMatch?JSON.parse('"'+sayMatch[1]+'"'):raw)+'\n\n(My build response was cut off before it was valid — say "continue" and I\u2019ll finish wiring it.)', actions:[]};
     }
-    thinking.innerHTML='<span class="who">c0fi</span>'+esc(plan.say||'(no comment)');
+    stopThinking(thinking).innerHTML='<span class="who">c0fi</span>'+esc(plan.say||'(no comment)');
     if(Array.isArray(plan.actions)&&plan.actions.length) await applyActions(plan.actions);
-  }catch(e){ thinking.innerHTML='<span class="who">c0fi</span>'+esc('Engine error: '+e.message); }
+  }catch(e){ stopThinking(thinking).innerHTML='<span class="who">c0fi</span>'+esc('Engine error: '+e.message); }
 }
 // wiringGaps: among the given node ids, which are structurally unwired — a Trigger with nothing
 // downstream, or any other node with no incoming wire (so it can never receive data). This is the
@@ -1768,6 +1902,34 @@ function wiringGaps(ids){
 // autoWire: hand the dangling nodes back to the Orchestrator with a NARROW task — return only the
 // connect actions to wire them in. A focused "just wire these" ask is far easier for a local model
 // to get right than the full edit. Applies only connect actions; never adds/deletes.
+/* Deterministic last resort after the model-driven autoWire fails (v7.0).
+   The old chain was: model builds -> forgets the wires -> ask the MODEL to wire them -> it fails
+   again -> give up and hand the user a dead canvas of red nodes. Asking the same model that just
+   failed is a request, not a gate; measured across runs it leaves ~1 in 6 builds unusable.
+   So: chain what is unambiguous. Nodes are laid out left-to-right by the builder (the prompt tells
+   it to), so consecutive-by-x is the intent it already expressed. We connect a->b only when it
+   cannot be wrong:
+     - a has EXACTLY ONE out port (a decision/branch fan-out is a real choice — never guessed,
+       still flagged red, because silently taking branch A drops branch B and looks finished),
+     - b has no incoming wire yet and is not a trigger,
+     - the pair isn't already wired.
+   Strictly left-to-right, so this can never introduce a cycle. */
+function chainWire(addedIds){
+  const nodes=addedIds.map(id=>state.nodes[id]).filter(Boolean)
+    .sort((a,b)=> (a.x-b.x) || (a.y-b.y));
+  let made=0;
+  for(let i=0;i<nodes.length-1;i++){
+    const a=nodes[i], b=nodes[i+1];
+    const outs=NODE_DEFS[a.type].outs||[];
+    if(outs.length!==1) continue;                                   // ambiguous fan-out — leave it
+    if(b.type==='trigger') continue;                                // triggers take no input
+    if(state.wires.some(w=>w.to===b.id)) continue;                  // already receiving
+    if(state.wires.some(w=>w.from===a.id&&w.to===b.id)) continue;
+    state.wires.push({from:a.id, fromPort:outs[0], to:b.id}); made++;
+  }
+  if(made) refresh();
+  return made;
+}
 async function autoWire(gaps){
   try{
     const raw=await ollama([
@@ -1788,9 +1950,38 @@ async function autoWire(gaps){
     refresh();
   }catch(e){}
 }
-async function applyActions(actions){
-  pushUndo();   // a whole orchestrator build/edit is one undo step
-  const refs={}; let built=[], addedIds=[], ran=false;
+/* Does this plan describe a SECOND, UNRELATED flow rather than an edit to the one on screen?
+   A rule in the system prompt asking the model to clear first is a request it reliably ignores
+   (measured: 0/4 with qwen3-coder:30b), so the decision is made here in code instead. Signature
+   of a new flow: it brings its OWN trigger while the canvas already has one, and nothing in the
+   plan touches any existing node. That combination can only produce two disconnected graphs —
+   which both fire on Brew, and whose wiring can't be inferred. Anything that references an
+   existing node is an edit, and is left alone. */
+function planIsNewFlow(actions){
+  const existing=new Set(Object.keys(state.nodes));
+  if(!existing.size) return false;
+  if(!Object.values(state.nodes).some(n=>n.type==='trigger')) return false;
+  if(!actions.some(a=>a.op==='add_node' && a.type==='trigger')) return false;
+  const newRefs=new Set(actions.filter(a=>a.op==='add_node'&&a.ref).map(a=>String(a.ref)));
+  const hitsExisting=a=>{
+    const ids=[];
+    if(a.op==='connect') ids.push(a.from,a.to);
+    if(a.op==='set_config'||a.op==='delete_node') ids.push(a.id);
+    return ids.some(i=>i!=null && !newRefs.has(String(i)) && existing.has(String(i)));
+  };
+  return !actions.some(hitsExisting);
+}
+let lastPlan=null;   // raw actions of the most recent build, for the unwired-build diagnostic
+async function applyActions(actions, opts){
+  opts=opts||{};
+  lastPlan=actions;
+  pushUndo();   // a whole orchestrator build/edit is one undo step — including any clear below
+  const refs={}; let built=[], addedIds=[], ran=false, cleared=0;
+  const wipe=()=>{ const had=Object.keys(state.nodes).length;
+    if(!had) return; state.nodes={}; state.wires=[]; state.selected=null;
+    nodesEl.innerHTML=''; closeDrawer(); cleared=had; };
+  // clear BEFORE the build, so add_node/connect below land on a clean canvas
+  if(!opts.noClear && (actions.some(a=>a.op==='clear_canvas') || planIsNewFlow(actions))) wipe();
   for(const a of actions){
     try{
       if(a.op==='add_node'){
@@ -1804,6 +1995,7 @@ async function applyActions(actions){
         if(n){ Object.assign(n.cfg, a.cfg||{}); if(a.name) n.name=a.name; }
       }else if(a.op==='delete_node'){
         const id=refs[a.id]||a.id; if(state.nodes[id]) deleteNode(id);
+      }else if(a.op==='clear_canvas'){ /* already handled before the loop */
       }else if(a.op==='run'){ ran=true; }
     }catch(e){ chatMsg('act','c0fi · action', 'skipped '+a.op+': '+e.message); }
   }
@@ -1821,6 +2013,7 @@ async function applyActions(actions){
     }
   });
   refresh();
+  if(cleared) chatMsg('act','c0fi · cleared', 'This is a new flow, not an edit, so I cleared the previous one ('+cleared+' node'+(cleared>1?'s':'')+') and built on a fresh canvas. Press ⌘/Ctrl+Z to bring it back. To extend the old flow instead, say what to add to it.');
   if(built.length) chatMsg('act','c0fi · built', built.join(' → ')+'  (wired on canvas)');
   if(patched) chatMsg('act','c0fi · fixed', 'Added the missing {{input}} to '+patched+' node'+(patched>1?'s':'')+' so they receive the previous step\u2019s output.');
   // self-heal: a build with no trigger gets one, wired into the entry node
@@ -1843,11 +2036,25 @@ async function applyActions(actions){
       chatMsg('act','c0fi · check','The build left '+gaps.length+' node'+(gaps.length>1?'s':'')+' unwired ('+gaps.map(g=>'"'+g.name+'"').join(', ')+') — wiring them in…');
       await autoWire(gaps);
       gaps=wiringGaps(addedIds.filter(id=>state.nodes[id]));
+      // model retry didn't finish the job -> fall back to the deterministic left-to-right chain
+      if(gaps.length){
+        const made=chainWire(addedIds.filter(id=>state.nodes[id]));
+        if(made){
+          gaps=wiringGaps(addedIds.filter(id=>state.nodes[id]));
+          chatMsg('act','c0fi · wired','Connected '+made+' wire'+(made>1?'s':'')+' left-to-right in the order the nodes were laid out. Check the arrows match what you meant — click a wire to cut it.');
+        }
+      }
       if(gaps.length){
         gaps.forEach(g=>{ if(state.nodes[g.id]) state.nodes[g.id].status='fail'; });
         refresh();
         const many=gaps.length>1;
         chatMsg('act','c0fi · needs a wire','Couldn’t auto-connect '+gaps.map(g=>'"'+g.name+'"').join(', ')+' (highlighted red). Drag a wire into '+(many?'them':'it')+', or tell me where '+(many?'they go':'it goes')+' — I won’t guess and risk a wrong connection.');
+        // A build that lands here is the one failure that can't be diagnosed after the fact:
+        // the plan the model actually returned is gone. Dump it to the Brew Log (with its own
+        // save .txt) so a bad build produces evidence instead of a story about what happened.
+        log('err','Builder plan that left nodes unwired — save this if you want it diagnosed',
+          JSON.stringify({model:state.cfg.model, gaps:gaps.map(g=>g.name), plan:lastPlan}, null, 1),
+          {name:'unwired-build-plan'});
       }else{
         refresh();
         chatMsg('act','c0fi · wired','Validated: every new node is connected into the flow.');
@@ -1866,7 +2073,7 @@ $('#chatInput').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey)
    Same Orchestrator, different framing: "here is how the current flow BEHAVED and what's wrong —
    diagnose it and patch the existing nodes." Used by the builder's ✨ Refine button and by the
    exported app's ✨ Improve panel. Returns {say} or {error}; edits are applied to the canvas. */
-const REFINE_SYS = 'REFINE MODE: The user is giving FEEDBACK about how the CURRENT flow behaved when run — a bug, a wrong result, or a reviewer\'s critique. Do NOT rebuild from scratch. Diagnose which node(s) in the current flow caused the described behavior, then emit the MINIMAL set of actions to fix it — strongly prefer editing existing nodes with set_config over adding new ones. When a code/branch node\'s js or an llm/critic prompt is at fault, rewrite that field in full. In "say", state plainly what you changed and why. Do NOT include a run action.';
+const REFINE_SYS = 'REFINE MODE: The user is giving FEEDBACK about how the CURRENT flow behaved when run — a bug, a wrong result, or a reviewer\'s critique. Do NOT rebuild from scratch. Diagnose which node(s) in the current flow caused the described behavior, then emit the MINIMAL set of actions to fix it — strongly prefer editing existing nodes with set_config over adding new ones. When a code/branch node\'s js or an llm/critic prompt is at fault, rewrite that field in full. In "say", state plainly what you changed and why. Do NOT include a run action. NEVER use clear_canvas in refine mode — refine always patches the flow that is already there.';
 async function refineFlow(feedback){
   feedback=(feedback||'').trim();
   if(!feedback) return {error:'No feedback given.'};
@@ -1883,7 +2090,7 @@ async function refineFlow(feedback){
       const m=raw.match(/"say"\s*:\s*"((?:[^"\\]|\\.)*)"/);
       plan={say:(m?JSON.parse('"'+m[1]+'"'):'(response was cut off)'), actions:[]};
     }
-    if(Array.isArray(plan.actions)&&plan.actions.length) await applyActions(plan.actions);
+    if(Array.isArray(plan.actions)&&plan.actions.length) await applyActions(plan.actions, {noClear:true});
     return {say:plan.say||'(revised)', changed:(plan.actions||[]).length};
   }catch(e){ return {error:'Engine error: '+e.message}; }
 }
@@ -1892,9 +2099,9 @@ $('#refineBtn').onclick=async ()=>{
   showTab('chat');
   if(!text){ chatMsg('c0fi','c0fi','Paste the feedback or critique into the box, then click ✨ Refine — I’ll diagnose the current flow and patch the nodes at fault.'); inp.focus(); return; }
   inp.value=''; chatMsg('user','you · feedback',text);
-  const thinking=chatMsg('c0fi','c0fi','…diagnosing the flow and revising…');
+  const thinking=thinkingMsg('diagnosing the flow and revising…');
   const r=await refineFlow(text);
-  thinking.innerHTML='<span class="who">c0fi</span>'+esc(r.error||r.say);
+  stopThinking(thinking).innerHTML='<span class="who">c0fi</span>'+esc(r.error||r.say);
 };
 
 /* ---------------- tabs / toolbar / io ---------------- */
@@ -2117,9 +2324,50 @@ $('#deleteFlowBtn').onclick=()=>{
 };
 refreshMySel();
 
+/* ---------- local engine (c0fi_server.py) status light ----------
+   Same language as the Ollama dot, because the failure feels the same from the canvas: a Web
+   Search / Read Page / Tool Server / RAG node just dies with a NetworkError and nothing says why.
+   Green = /api/health answered. Red = nothing listening. Clicking either tells you how to start it.
+   Note this is a soft dependency: with Ollama alone C0fi still runs, and search/read fall back to
+   DuckDuckGo + r.jina.ai — so red is a downgrade, never a blocker. The dialog says so. */
+let srvOk=null;
+async function testServer(){
+  const base=(state.cfg.proxy||'http://localhost:8790').replace(/\/+$/,'');
+  let ok=false;
+  try{
+    const c=new AbortController(); const t=setTimeout(()=>c.abort(), 2500);
+    const r=await fetch(base+'/api/health',{signal:c.signal}); clearTimeout(t);
+    ok = r.ok;
+  }catch{ ok=false; }
+  srvOk=ok;
+  const dot=$('#srvDot'), lab=$('#srvLabel');
+  if(dot){ dot.classList.remove('unknown'); dot.classList.toggle('ok', ok); }
+  if(lab) lab.textContent = ok ? 'server online' : 'server offline';
+  return ok;
+}
+function srvHelp(){
+  const base=(state.cfg.proxy||'http://localhost:8790').replace(/\/+$/,'');
+  const port=(base.match(/:(\d+)/)||[])[1]||'8790';
+  const d=$('#srvDlg');
+  $('#srvState').innerHTML = srvOk
+    ? '<span style="color:var(--leaf)">● Online</span> — real web search, clean page reading, MCP tools and RAG over <code>knowledge/</code> are all available.'
+    : '<span style="color:var(--cherry)">● Offline</span> — nothing is listening on <code>'+esc(base)+'</code>. Web Search and Read Page fall back to DuckDuckGo instant answers and r.jina.ai, but <b>Tool Server, Watch Task and RAG nodes will fail</b> with a NetworkError.';
+  $('#srvCmd').textContent = 'cd '+(location.pathname.replace(/\/[^/]*$/,'')||'~/c0fi')+' && python3 c0fi_server.py'+(port!=='8790'?' '+port:'');
+  d.showModal();
+}
+$('#srvWrap').onclick=srvHelp;
+$('#srvCopy').onclick=async()=>{
+  try{ await navigator.clipboard.writeText($('#srvCmd').textContent); $('#srvCopy').textContent='✓ Copied'; }
+  catch{ $('#srvCopy').textContent='select it manually'; }
+  setTimeout(()=>{ $('#srvCopy').textContent='⧉ Copy'; }, 1600);
+};
+$('#srvRecheck').onclick=async()=>{ $('#srvRecheck').textContent='checking…'; await testServer(); srvHelp(); $('#srvRecheck').textContent='↻ Re-check'; };
+$('#srvClose').onclick=()=>$('#srvDlg').close();
+testServer(); setInterval(testServer, 15000);
+
 /* settings */
 const dlg=$('#settingsDlg');
-$('#settingsBtn').onclick=()=>{ $('#setUrl').value=state.cfg.url; $('#setTemp').value=state.cfg.temp; $('#setMaxLoops').value=state.cfg.maxLoops; dlg.showModal(); testConn(true); };
+$('#settingsBtn').onclick=()=>{ $('#setUrl').value=state.cfg.url; $('#setTemp').value=state.cfg.temp; $('#setMaxLoops').value=state.cfg.maxLoops; $('#setProxy').value=state.cfg.proxy; dlg.showModal(); testConn(true); testServer(); };
 $('#setTest').onclick=()=>{ state.cfg.url=$('#setUrl').value.trim(); testConn(false); };
 // Enter in the endpoint field = Test connection, without closing the dialog: the connect dot
 // flips and the model lists populate in place, so you can pick a model and Save in one visit.
@@ -2128,7 +2376,8 @@ $('#setSave').onclick=()=>{ state.cfg.url=$('#setUrl').value.trim(); state.cfg.m
   state.cfg.verifier=$('#setVerifier').value;
   state.cfg.model3=$('#setModel3')?$('#setModel3').value:''; state.cfg.model4=$('#setModel4')?$('#setModel4').value:'';
   state.cfg.temp=+$('#setTemp').value||0.4; state.cfg.maxLoops=+$('#setMaxLoops').value||8;
-  saveCfg(); updateModelTag(); dlg.close(); testConn(true); };
+  state.cfg.proxy=($('#setProxy').value||'').trim()||'http://localhost:8790';
+  saveCfg(); updateModelTag(); dlg.close(); testConn(true); testServer(); };
 
 /* ---------------- demo library ---------------- */
 const demos={

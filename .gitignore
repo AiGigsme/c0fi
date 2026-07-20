@@ -5,6 +5,10 @@ test/node_modules/
 # npm debug output
 npm-debug.log*
 
+# python bytecode
+__pycache__/
+*.pyc
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>C0fi v6.8 — User Guide · c0fi.com</title>
+<title>C0fi v7.0 — User Guide · c0fi.com</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -57,7 +57,7 @@ footer{margin-top:70px;border-top:1px solid var(--wire);padding-top:18px;color:v
 
 <header class="hero">
   <h1>C<span class="z0">0</span>fi<span>.</span> User Guide</h1>
-  <div class="sub">v6.8 · local orchestration engine · single file · no cloud · c0fi.com</div>
+  <div class="sub">v7.0 · local orchestration engine · single file · no cloud · c0fi.com</div>
 </header>
 
 <div class="toc">
@@ -71,7 +71,7 @@ footer{margin-top:70px;border-top:1px solid var(--wire);padding-top:18px;color:v
   <a href="#brew">8. How a brew executes</a>
   <a href="#memory">9. The Memory blackboard</a>
   <a href="#io">10. Saving, loading, and your flow library</a>
-  <a href="#auto">11. Auto Brews — schedule flows to run automatically <span class="chip new">v6.8</span></a>
+  <a href="#auto">11. Auto Brews — schedule flows to run automatically <span class="chip new">v7.0</span></a>
   <a href="#recipes">12. Recipes &amp; the demo library</a>
   <a href="#trouble">13. Troubleshooting</a>
 </div>
@@ -85,6 +85,8 @@ footer{margin-top:70px;border-top:1px solid var(--wire);padding-top:18px;color:v
   <li><strong>Build</strong> — it edits, extends, and re-runs flows mid-conversation, including flows you drew by hand.</li>
 </ul>
 <p class="dim">Everything runs in one HTML file against your local Ollama. No accounts, no telemetry. One small local helper (<code>c0fi_server.py</code>) upgrades web search and page reading from real result pages; flows export as JSON files you own, or save to a browser-local library.</p>
+<div class="callout good"><b>New in v7.0 — brews that remember, and admit defeat</b>Three changes that make an <em>unattended</em> run trustworthy. An Auto Brew can now <strong>keep its own Memory blackboard between runs</strong> instead of starting blank, so a critic ledger or a seen-already list accumulates night over night (§11) — still fully isolated from the canvas you have open. The Orchestrator now <strong>clears the canvas itself</strong> when you describe a genuinely new flow (undoable with ⌘Z) instead of stacking two disconnected graphs, shows a <strong>spinner and elapsed-seconds counter</strong> while the model thinks, and the header carries a <strong>status light for <code>c0fi_server.py</code></strong> next to the Ollama one. The new <strong>⚑ Escalate</strong> node (§5) is a terminal "I couldn't do this on my own," with a reason and a severity: a scheduled run that reaches one is reported as <strong>escalated, not ok</strong>, and its reason leads the auto-saved <code>.txt</code>. And <strong>⇄ HTTP Request</strong> now <strong>checks the status code</strong> — a 404 or 500 body no longer flows downstream as if the call had succeeded.</div>
+
 <div class="callout good"><b>New in v6.3 → v6.8 — Auto Brews</b>Flows can now run <strong>on a schedule, by themselves</strong>. The new <strong>⏰ Auto Brews</strong> button (next to Clear canvas) deploys whole flows to a scheduled list — <strong>every N minutes</strong>, <strong>daily at a time</strong>, or <strong>weekly on the days you pick</strong> (Mon/Wed/Fri at 09:00, every Monday at 1 am, and so on) — and they brew automatically while the tab is open (§11). Deploy as many as you want; each is <strong>pausable, deletable, and runs independently</strong>. Every run can <strong>auto-save its result to a .txt file</strong>, and there's a per-brew <strong>⤓ Save .txt</strong> for the last result. A single engine lock means brews never collide — a busy engine <strong>holds and retries</strong> instead. Deleting a brew that's running <strong>stops it for you</strong>. See §11 for the whole workflow.</div>
 
 <div class="callout good"><b>New in v6.2</b>A <strong>model pool</strong> — Engine settings now has four model slots (<strong>Model</strong>, <strong>Verifier</strong>, <strong>Model C</strong>, <strong>Model D</strong>), so different nodes can run on different models (§2, §5) · a node's <strong>model override is now a live dropdown</strong> of the models your engine actually has, plus the four slots — no more hand-typing names (§5) · the <strong>Verifier bench</strong> demo's three judges read the Verifier / Model C / Model D slots and are labelled <strong>Judge 1–3</strong>, so setting three real models gives you genuinely independent judging (§12) · an <strong>exported app that lands with no engine</strong> shows a short "run me on Ollama" hint instead of failing silently (§10) · the status line no longer overflows when a message is long — the full text stays in the Brew Log.</div>
@@ -130,7 +132,7 @@ open -a Ollama        # fresh app inherits the setenv</code></pre>
 <h2 id="tour">3. Interface tour</h2>
 <table>
   <tr><th>Region</th><th>What it does</th></tr>
-  <tr><td>Header</td><td>Connection dot, model tag (shows <code>maker ⊢ verifier</code> when a Verifier is set), Engine settings (endpoint, four model slots — <strong>Model, Verifier, Model C, Model D</strong> — temperature, loop safety valve), Export/Import flow.</td></tr>
+  <tr><td>Header</td><td><strong>Two status dots <span class="chip new">v7.0</span></strong> — the Ollama connection, and the local <code>c0fi_server.py</code> engine (green = answering, red = not running; <strong>click it for the launch command</strong>). Then the model tag (shows <code>maker ⊢ verifier</code> when a Verifier is set), Engine settings (endpoint, four model slots — <strong>Model, Verifier, Model C, Model D</strong> — temperature, loop safety valve, local engine URL), Export/Import flow.</td></tr>
   <tr><td>Ingredients (left)</td><td>The node palette. Drag any card onto the canvas.</td></tr>
   <tr><td>Canvas (center)</td><td>Your flow. Pan by dragging empty space. Toolbar: Brew, Stop, <strong>↶ / ↷ undo &amp; redo</strong> (§4), Clear, a <strong>demo dropdown</strong>, a <strong>My flows</strong> dropdown, and <strong>Save flow</strong> / delete for your local library (§10).</td></tr>
   <tr><td>C0fi Orchestrator (right)</td><td>Chat with the engine. It builds, edits, and runs the canvas from plain language. Above the input sit <strong>quick-fill example buttons</strong> — a "try:" row (create a research flow, edit / audit the canvas, use your browser agent) and a "langchain patterns:" row (router chain, smart branch, judge &amp; gate, map-reduce, multi-query RAG). Clicking one drops a ready-made request into the input; it does <em>not</em> auto-send — review it, then press Send.</td></tr>
@@ -196,6 +198,7 @@ return /^https?:\/\//.test(String(input)) ? 'A' : 'B';</code></pre>
 
 <h3>⇄ HTTP Request <span class="chip">io</span></h3>
 <p>Calls any URL — public APIs or other local services on your machine. <code>{{input}}</code> works in the URL and body. JSON responses are auto-parsed; anything else passes through as text.</p>
+<div class="callout good"><b>Status codes are checked <span class="chip new">v7.0</span></b>A non-2xx response (404, 500, …) <strong>fails the branch</strong> instead of flowing downstream. Before v7.0 an error body became the payload the next node reasoned over and the brew still finished <em>ok</em> — the classic "false done." If you <em>want</em> the error body as data, set the node's <strong>onError</strong> field to <code>pass</code>; the default is <code>fail</code>.</div>
 <div class="callout warn"><b>Browser CORS applies</b>C0fi runs in your browser, so remote APIs must allow cross-origin requests. Local services you control (Flask apps, ERPNext, your own tools) can set their own CORS headers and become first-class nodes.</div>
 
 <h3>ƒ Transform <span class="chip">js</span></h3>
@@ -225,6 +228,20 @@ return d.title + ' — ' + d.url;</code></pre>
 
 <h3>◎ Output <span class="chip">end</span></h3>
 <p>Terminal collector. Prints the labeled final payload to the Brew Log and shows it on the node card.</p>
+
+<h3>⚑ Escalate <span class="chip new">end · new in v7.0</span></h3>
+<p>The other way a flow can end: <strong>"I couldn't do this on my own."</strong> Terminal, like Output — but it marks the run as <em>not finished</em> and records why.</p>
+<table>
+  <tr><th>Field</th><th>What it does</th></tr>
+  <tr><td><strong>reason</strong></td><td>What was tried and what a human has to decide. <code>{{input}}</code> and <code>{{memory.key}}</code> work here — put the actual failing content in, not just "it failed."</td></tr>
+  <tr><td><strong>severity</strong></td><td><code>blocked</code> (nothing can proceed), <code>needs-review</code> (there's a result, but don't trust it unread), or <code>fyi</code> (worth knowing, not urgent).</td></tr>
+</table>
+<p>Wire the <em>failure</em> side of a verification step into it — a <strong>⎇ Code Branch</strong> whose check didn't pass, a <strong>⑂ Decision</strong> that came back "no", a <strong>✎ Critic Loop</strong> whose output still doesn't clear the bar. The point is to make the failure path explicit rather than letting a half-done result reach an Output and look like success.</p>
+<pre><code>trigger → work → ⎇ Code Branch (does it pass the rule?)
+                   ├── OK   → ◎ Output
+                   └── FAIL → ⚑ Escalate  "rule check failed on: {{input}}"</code></pre>
+<p>Reaching one logs a red <code>⚑ ESCALATED</code> line and the brew ends with <em>"finished with N escalation(s) — a human is needed"</em> instead of a plain <em>Brew finished</em>. In an <strong>Auto Brew</strong> it matters more: the run is recorded as <strong>escalated, not ok</strong>, the reason shows in the Auto Brews list in red, and it's written to the <strong>top of the auto-saved <code>.txt</code></strong> above the result — so the file you read the next morning leads with what needs you.</p>
+<div class="callout"><b>Give every unattended flow one</b>A scheduled flow with no Escalate node has only two outcomes: a result, or a crash. Most real failures are neither — they're "I got something, but it isn't right." Without somewhere to route that, it gets filed as a success.</div>
 
 <h2 id="mcp">6. MCP &amp; the Tool Server — everything connects</h2>
 <p><strong>c0fi_server.py</strong> is a zero-dependency engine (plain <code>python3</code>, no pip installs) that gives C0fi its web hands and doubles as an MCP server. Run it directly or let <code>start.sh</code> do it:</p>
@@ -271,7 +288,11 @@ python3 mcp_stdio_bridge.py 8795 -- npx -y @modelcontextprotocol/server-filesyst
   <tr><td>set_config</td><td>Edits any existing node — including ones you built by hand.</td></tr>
   <tr><td>delete_node</td><td>Removes a node and its wires.</td></tr>
   <tr><td>run</td><td>Starts a brew (only when you ask it to run/test).</td></tr>
+  <tr><td>clear_canvas <span class="chip new">v7.0</span></td><td>Empties the canvas before building — see below. Undoable in one step.</td></tr>
 </table>
+<div class="callout good"><b>New flow vs. edit <span class="chip new">v7.0</span></b>Describing a <em>brand-new</em> flow while another one is on the canvas used to end badly: the builder added the new nodes alongside the old ones, couldn't infer wiring between two unrelated graphs, and left everything dangling — and since both graphs had a Trigger, <strong>both fired on Brew</strong>. C0fi now decides this <strong>in code, not in the prompt</strong>: if a build brings its own Trigger and touches nothing already on the canvas, it's a new flow, so the old one is cleared first. It's a <strong>single ⌘/Ctrl+Z</strong> to get it back, and the chat says so. Anything that references an existing node — "add a step after the summarizer", "that branch is wrong" — is an edit and never clears. <strong>✨ Refine</strong> never clears, ever.<br><br>Why in code: an instruction in the system prompt asking the model to clear first was measured being ignored <strong>4 times out of 4</strong>. A rule in prose is a request; a rule in code is a gate.</div>
+<div class="callout good"><b>Builds always come out wired <span class="chip new">v7.0</span></b>Sometimes the model returns the right nodes and simply forgets the wires — measured at roughly <strong>1 build in 6</strong>. The old recovery asked that same model to fix its own wiring, and when that failed too you were left with a canvas of red nodes. Now there's a deterministic fallback: any nodes still unwired get chained <strong>left-to-right in the order they were laid out</strong> — the sequence the builder already committed to when it placed them. The chat tells you it inferred the order, so you can check the arrows. <strong>A Decision or Code Branch fan-out is never guessed</strong>: quietly wiring branch A and dropping branch B would look finished while being wrong, so those stay flagged red for you to draw.</div>
+<div class="callout"><b>Knowing it's working <span class="chip new">v7.0</span></b>A local model can spend 30 seconds or more on an orchestration prompt. The chat now shows a <strong>spinner and a live elapsed-seconds counter</strong> while it thinks, so a slow build is visibly distinct from a hung one.</div>
 <p>It knows the full node set, including <strong>Code Branch</strong>, <strong>For Each</strong>, and the <strong>⇉ Gather</strong> join, and is told to prefer a deterministic Code Branch over a model-routed Decision whenever the choice is mechanical, to use For Each instead of hand-rolling a queue, and to reach for Gather when it needs to merge several parallel producers. Things that work well to say:</p>
 <ul>
   <li>"Build a flow that drafts a LinkedIn post from a topic, gates it on quality, revises until it passes, and archives the winner. Then run it."</li>
@@ -330,7 +351,7 @@ python3 mcp_stdio_bridge.py 8795 -- npx -y @modelcontextprotocol/server-filesyst
 <div class="callout warn"><b>An app still needs a running engine</b>A single HTML file can't bundle Ollama. The exported app needs <strong>Ollama reachable</strong> (and <code>c0fi_server.py</code> if the flow uses Search, Read, Tool, or Watch nodes) — the ⚙ lets whoever runs it set the endpoint. For a non-technical recipient, either hand over a folder with the app + <code>c0fi_server.py</code> + a start script, or point the flow's engine endpoint at a hosted LLM API before building so the file runs anywhere.</div>
 <div class="callout good"><b>✨ Improve — the app can rebuild itself <span class="chip new">new in v5.7</span></b>Because an exported app carries the <em>whole</em> engine (just hidden), it can revise its own flow. Every app has an <strong>✨ Improve</strong> button in its header: describe what's wrong or what you'd change, click <strong>Revise &amp; re-download</strong>, and the local model edits the embedded flow and downloads an updated version of the app — open the new file to run it. It's the same feedback loop as the builder's Refine, closed inside a shipped app. So the workflow becomes: build an app, watch it run, notice a flaw (or get a critique from another tool), paste that in, and get back a better app — no builder required. Same caveat applies: the quality of the revision depends on the local model.</div>
 
-<h2 id="auto">11. Auto Brews — schedule flows to run automatically <span class="chip new">v6.8</span></h2>
+<h2 id="auto">11. Auto Brews — schedule flows to run automatically <span class="chip new">v7.0</span></h2>
 <p>Everything so far runs when you press <strong>⏻ Brew</strong>. <strong>Auto Brews</strong> lets a flow run <em>on its own</em>, on a timer — turn "I click Brew every morning" into "it drafts my digest while I make coffee." Open it from the <strong>⏰ Auto Brews</strong> button next to <em>Clear canvas</em>; the dialog is the list of every flow scheduled for automatic brewing.</p>
 
 <div class="callout"><b>How it runs — in the browser, tier 1</b>Auto Brews are driven by this page while it's open — there's no server or daemon. They fire <strong>while the C0fi tab stays open and the machine is awake</strong>; closing the tab or sleeping the laptop pauses them. That's the honest limit of the in-browser approach (a headless "runs with the tab closed" runner is future work). Deployed brews <strong>persist across reloads</strong>, so reopening the file brings your list back — each keeps the paused state you set.</div>
@@ -356,6 +377,8 @@ python3 mcp_stdio_bridge.py 8795 -- npx -y @modelcontextprotocol/server-filesyst
   <tr><td>▶ Run now</td><td>Fire this brew immediately — handy to confirm it works right after deploying.</td></tr>
   <tr><td>⏸ Pause / ▶ Resume</td><td>Stop future runs without deleting. Paused brews stay in the list and keep their snapshot.</td></tr>
   <tr><td>⤓ Auto-save: on/off</td><td>Toggle whether each run downloads its result as a <code>.txt</code> (see below).</td></tr>
+  <tr><td>▤ Memory: kept/fresh <span class="chip new">v7.0</span></td><td>Toggle whether this brew carries its blackboard between runs (see below). Switching to <em>fresh</em> also clears what it had stored.</td></tr>
+  <tr><td>⌫ Clear memory <span class="chip new">v7.0</span></td><td>Forget this brew's remembered blackboard without turning the feature off — the next run starts blank.</td></tr>
   <tr><td>⤓ Save .txt</td><td>Download the <em>last</em> captured result at any time.</td></tr>
   <tr><td>✎ Update flow</td><td>Replace this brew's saved snapshot with your current canvas — after you improve the flow.</td></tr>
   <tr><td>🗑 Delete</td><td>Remove the schedule and its snapshot. If it's brewing right now, Delete <strong>also stops the run</strong> for you.</td></tr>
@@ -365,8 +388,19 @@ python3 mcp_stdio_bridge.py 8795 -- npx -y @modelcontextprotocol/server-filesyst
 <h3>Auto-saving results to a file</h3>
 <p>Just like the manual <strong>⤓ save .txt</strong> on a node's output, an Auto Brew can save automatically. Tick <strong>⤓ Auto-save each run's result to a .txt file</strong> at deploy time (or toggle it per row). Each run then drops a timestamped file — e.g. <code>morning-digest-20260715-083000.txt</code> — into your Downloads. Auto-save captures your <strong>◎ Output node(s)</strong>; a flow with no Output has nothing to save (add one to capture a result). Every run also stores its result in the list regardless, so <strong>⤓ Save .txt</strong> is always available even with auto-save off. Because it's a browser, the file lands reliably only while the C0fi tab is <strong>focused</strong>.</p>
 
+<h3>Memory between runs <span class="chip new">v7.0</span></h3>
+<p>By default every scheduled run starts from a <strong>blank blackboard</strong> — which makes it a one-shot on a timer, not a loop. It can't know it already tried something last night, already saw that article, or already learned that a source is unreliable.</p>
+<p>Tick <strong>▤ Remember memory between runs</strong> when deploying (or flip <strong>▤ Memory: fresh → kept</strong> on a row) and the brew keeps <strong>its own</strong> blackboard, carried from each run into the next. Things worth keeping there:</p>
+<ul>
+  <li>A <strong>✎ Critic Loop ledger</strong> — the constraint list keeps growing night over night, so the same weak phrasing gets caught earlier each time instead of being re-learned from scratch.</li>
+  <li>A <strong>seen-already list</strong> — a ▤ Memory node in <em>append</em> mode holding URLs or IDs already processed, read back by a ⎇ Code Branch to skip repeats.</li>
+  <li>A <strong>lessons-learned key</strong> — notes the flow writes about what went wrong, injected into a later prompt via <code>{{memory.key}}</code>.</li>
+</ul>
+<div class="callout good"><b>Still isolated from your canvas</b>"Kept" means kept <em>for that brew</em>. A background run can neither read nor overwrite the Memory blackboard you have open on the canvas — the isolation that's always been there is unchanged. Each brew's memory is its own; two brews never share.</div>
+<p>The row shows how many keys are being held. <strong>⌫ Clear memory</strong> forgets them on demand. Since an <em>append</em>-mode key grows on every single run, oversized keys are <strong>clamped to the newest portion</strong> rather than being allowed to exhaust browser storage and take the whole Auto Brew list down with them — you'll see a note in the Brew Log when that happens.</p>
+
 <h3>How background runs stay out of your way</h3>
-<p>When a scheduled brew comes due, the engine <strong>snapshots your current canvas → swaps the scheduled flow in → brews it → restores your canvas</strong>. Whatever you had open comes back untouched, and a fresh Memory blackboard is used so a background run can't pollute your working state. It also <strong>won't hijack the canvas mid-edit</strong> — it skips a due run while you have a node drawer open or are dragging/wiring, and retries on the next tick.</p>
+<p>When a scheduled brew comes due, the engine <strong>snapshots your current canvas → swaps the scheduled flow in → brews it → restores your canvas</strong>. Whatever you had open comes back untouched, and the background run uses its own Memory blackboard (blank, or this brew's remembered one) so it can't pollute your working state. It also <strong>won't hijack the canvas mid-edit</strong> — it skips a due run while you have a node drawer open or are dragging/wiring, and retries on the next tick.</p>
 
 <div class="callout good"><b>One brew at a time — no collisions</b>A single engine lock means brews never overlap. If the engine is busy when one is due, C0fi <strong>holds and retries</strong> rather than colliding: a manual <strong>Run now</strong> retries in 2 minutes (up to five times); a scheduled brew simply waits for the next 15-second tick (it stays due, so it doesn't lose its turn). The canvas <strong>⏻ Brew</strong> button is also refused while an Auto Brew holds the engine.</div>
 
@@ -439,7 +473,7 @@ python3 mcp_stdio_bridge.py 8795 -- npx -y @modelcontextprotocol/server-filesyst
   <tr><td>Auto Brew "is waiting" in the log</td><td>Expected — another brew holds the engine, so this one is holding to avoid a collision (§11). A manual Run now retries in 2 min; scheduled brews retry every 15 s.</td></tr>
 </table>
 
-<footer>C0fi v6.8 · single-file local orchestration engine · runs entirely against your own Ollama · your flows, your files, your machine. · c0fi.com</footer>
+<footer>C0fi v7.0 · single-file local orchestration engine · runs entirely against your own Ollama · your flows, your files, your machine. · c0fi.com</footer>
 
 </div>
 </body>
